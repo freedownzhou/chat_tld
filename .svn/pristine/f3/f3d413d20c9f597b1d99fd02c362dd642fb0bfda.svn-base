@@ -1,0 +1,169 @@
+<template>
+  <van-row class="chat_topbox">
+    <div class="backgroundbox">
+    <van-nav-bar
+      left-arrow
+      @click-left="onClickLeft"
+      left-text="聊天列表"
+      style="line-height: 35px"
+    >
+    </van-nav-bar>
+    </div>
+<!--    消息类型-->
+    <van-row type="flex" justify="space-around"class="inf_type" align="center" >
+      <van-col class="img_box" span="6">
+        <img src="../img/wanjia_inf.png" >
+        <span class="mt5">互动消息</span>
+      </van-col>
+      <van-col class="img_box" span="6">
+        <img src="../img/xt_inf.png" >
+        <span class="mt5">通知消息</span>
+      </van-col>
+    </van-row>
+    <van-radio-group class="lg_checked">
+      <van-cell-group>
+        <van-cell  clickable v-for="(item,index) in this.chats.redMsg" :key="index" @click="contactUserF(index)" class="chat_list">
+          <div class="yuan"><img :src="myPic"></div>
+          <span class="fasong">发送人:{{index}}</span>
+          <span class="right_red">信息数:{{item[0].num}}</span>
+          <span class="hui_font">{{item[0].message}}</span>
+        </van-cell>
+      </van-cell-group>
+    </van-radio-group>
+  </van-row>
+</template>
+
+<script>
+  import indexedDB from "../indexedDB";
+  import {mapState,mapGetters} from 'vuex'
+    export default {
+        name: "ChatList",
+      data (){
+        return {
+          sendId:0,
+          roomId: '',
+          contactUser:false,  //联系用户
+          myPic:require('../img/timg.jpg'),
+        }
+      },
+        computed: {
+        ...mapState(['userInfo','chat']),
+        ...mapGetters(['chats'])
+        },
+      methods: {
+        onClickLeft() {
+          console.log('返回');
+          this.$router.go(-1);
+        },
+        onClickRight() {
+          console.log('按钮');
+        },
+        //联系用户
+        contactUserF(index){
+          this.sendId = Number(index);
+            this.$store.dispatch('showChatWindow',{
+              nickName:this.sendId,
+              hearUserId:this.sendId,
+              myUserId:this.userInfo.userId
+            }).then(res=>{
+              console.log(index)
+              this.chats.redMsg[index][0].num = 0
+              localStorage.setItem('hongdian', JSON.stringify(this.chats.redMsg));
+              this.$store.dispatch('roomId_sql',this.chats.redMsg[index][0].roomId)
+              this.$router.push({path: 'ChatRoom', query:{sendId: this.sendId,roomId: this.chats.redMsg[index][0].roomId}});
+            })
+        },
+      },
+      created() {
+        // this.$store.dispatch('roomId_sql',{
+        //   nickName:this.sendId,
+        //   hearUserId:this.sendId,
+        //   myUserId:this.userInfo.userId
+        // })
+        // indexedDB.room_openDB(this.chat.db,'msgBox');
+      }
+    }
+</script>
+
+<style scoped>
+.right_red{
+  position: absolute;
+  right: 0;
+}
+.hui_font{
+  color: #999999;
+  font-size: 6px;
+  position: relative;
+  left: -60px;
+  top: 20px;
+}
+.inf_type{
+  width: 91.47%;
+  margin: 0 auto;
+  position: relative;
+  height: 85px;
+  top: -35px;
+  border-radius: 4px;
+  background: #fff;
+}
+.inf_type .img_box{
+  width: 50px;
+  height: auto;
+  /*display: inline-block;*/
+  font-size: 12px;
+  text-align: center;
+}
+.inf_type img{
+  width: 38px;
+  height: 38px;
+  margin-bottom: 5px;
+}
+/deep/ .van-nav-bar{
+  background: transparent;
+  border: 0;
+}
+/deep/ .van-hairline--bottom::after{
+  border-bottom-width: 0;
+}
+.backgroundbox{
+  height: 104px;
+  width: 100%;
+  position: relative;
+  background: url('../img/public_bg.png');
+  background-size: cover;
+}
+.chat_topbox{
+  width: 100%;
+  height: 100%;
+  top:0;
+  /*z-index: -1;*/
+  position: absolute;
+}
+  .chat_topbox /deep/ .van-nav-bar__left span{
+    color: #ffffff;
+  }
+  .chat_topbox /deep/ .van-icon-arrow-left:before {
+    color: white;
+  }
+  /*聊天列表*/
+.chat_list{
+  height: 66px;
+}
+.chat_list .yuan{
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  display: inline-block;
+  width:45px;
+  height:45px;
+  overflow: hidden;
+  vertical-align: top;
+}
+  .chat_list img{
+    width: 45px;
+    height: 45px;
+  }
+  .fasong{
+    font-size: 14px;
+  }
+</style>

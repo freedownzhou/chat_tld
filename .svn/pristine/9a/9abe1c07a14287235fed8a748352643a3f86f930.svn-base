@@ -1,0 +1,99 @@
+// import Vue from 'vue'
+// import Vuex from 'vuex'
+// import user from './modules/user'
+// Vue.use(Vuex)
+
+// export default new Vuex.Store({
+//   modules: {
+//     user
+//   }
+// })
+
+import Vue from 'vue';
+import Vuex from 'vuex';
+
+import mutations from './modules/mutation';
+import actions from './modules/action';
+import getters from './modules/getters';
+
+
+Vue.use(Vuex);
+
+
+const state = {
+    // 登录状态
+    PromptStatus:false,
+    PromptValue:"加载中...",
+    loginStatus: false,
+    utype:2,                 // 1-个人 2-商户
+    Pricing:1000,
+    indexLang:'',    
+    login:{
+      publicKey:"",          //公钥
+      sixWordsKey:"",        //六位码键
+      credentialsNo:"",      //证件号码
+      credentialsType:"" ,   //证件类型
+      utype:"" ,             //用户类型
+      nationality:'',        //国籍
+      accountName:'',        //手机号
+      userName:'',           //昵称
+      TrueName:'',           //真实姓名
+      Password:'',           //密码
+      shangIdCard:'',        //商户身份证
+      shangName:'' ,          //商户真实名字  
+      aliPay: false,
+    },
+    // 登录后
+    userInfo:{
+      
+    },
+    PerwalletShow:false,    //个人信息钱包认证
+    PerwalletValue: 2 ,     //1 代表个人 2代表钱包
+
+    // "userId":4,
+    // "realName":"黎先生",
+    // "telephone":null,
+    // "nickName":"wsup56",
+    // "wallet":true,
+    // "cert":true,
+    // "pay":true,
+    // "totalAssets":600,
+    // "activeAssets":600,
+    // "lockAssets":0,
+    // "telephoneNum":"1770****0721",
+    // "headImag":"http://oss.thyc.com/d1e812c6d74c4f8f9fbc890898aa2ddb.jpeg",
+    // "userType":null,
+    // "lastLoginTime":1562569094182,
+    // "token":"9e531b7edbf24f7dbf454736b09500e2",
+    // "createTime":1562568342000,
+    // "bankCount":0,
+    // "weChat":false,
+    // "aliPay":false
+  //聊天
+  chat:{
+    redPoints: [],
+    redMsg:JSON.parse(localStorage.getItem('hongdian'))||[],   //红点提示对方ID
+    redMsgNum:0, //全局红点数量
+    curHomeName:'' ,//监听是否进入聊天室
+    allChatArr:[],//合并的聊天记录
+    chatArr:[],   //对方的聊天记录
+    myChatArr:[], //我的聊天记录
+    curChatId:'', //对方的ID
+    curChatNick:'',//对方的名字
+    chatWindow:false,
+    db:'',
+    //实例化websocket对象
+    webSock:'',
+
+
+    //默认自动重连   如果是踢下线 改为false
+    reconnect:true,
+  },
+  }
+
+export default new Vuex.Store({
+    state,
+    getters,
+    actions,
+    mutations,
+})

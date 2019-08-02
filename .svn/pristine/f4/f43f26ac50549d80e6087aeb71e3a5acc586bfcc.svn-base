@@ -1,0 +1,277 @@
+import axios from 'axios'
+import {url} from "../../plugin/https";
+import store from "../index";
+import indexedDB from "../../indexedDB";
+
+export default {
+    login: function (context,data) {
+        context.commit('LOGIN');      
+        context.commit('SET_USER', {
+            loginStatus: true
+        })
+    },
+    clearUserInfo: function (context) {
+        context.commit('CLEAR_USER_INFO');
+    },
+    //密码加密
+    SetEncryption:function(context,value){
+        let _sixWords;
+        let _sixWordKey;                
+        axios.get("http://192.168.2.124:8084/tldollar/common/getSixRandomKeyWords").then(//获取六键码
+            res=>{
+                _sixWords = res.data.data.sixWord;
+                _sixWordKey = res.data.data.sixWordsKey
+            }
+          )
+        axios.post("http://192.168.2.124:8084/tldollar/common/getPublicKey").then(//获取公钥
+            res=>{ 
+                let encrypt = new JSEncrypt();
+                let _publicKeys=res.data.data                 
+                encrypt.setPublicKey(_publicKeys) 
+                let datas={
+                    publicKey:_publicKeys,
+                    Password:encrypt.encrypt(value+_sixWords),
+                    sixWordsKey:_sixWordKey,
+                    sixWords:_sixWords,
+                    status:0,
+                }  
+                console.log(datas)
+                context.commit("SAVE_USER",datas)  
+            }
+        )  
+    },
+    //订单加密
+    OrderEncryption:function(context,data){        
+        let jsencrypt = new JSEncrypt();
+        let privateKey = jsencrypt.getPrivateKey();
+        let publicKey = jsencrypt.getPublicKey();
+        let arr = [];
+        for (let key in data) {
+            arr.push(key)
+        }
+        arr.sort();      
+        let str = '';
+        for (let i in arr) {
+            str += arr[i] + "=" + data[arr[i]] + "&"
+        }
+        let param =  str.substr(0, str.length - 1)
+        jsencrypt.setPrivateKey(privateKey);
+        let sign = jsencrypt.sign(param, CryptoJS.SHA256, "sha256");
+        let objs={
+            plainStr:param,
+            sign: sign,
+            publicKey: publicKey
+        }
+        return objs
+    },
+    //base64 加密
+    Base64:function(context){            
+            _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";         
+            this.encode = function (input) {
+                var output = "";
+                var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+                var i = 0;
+                input = _utf8_encode(input);
+                while (i < input.length) {
+                    chr1 = input.charCodeAt(i++);
+                    chr2 = input.charCodeAt(i++);
+                    chr3 = input.charCodeAt(i++);
+                    enc1 = chr1 >> 2;
+                    enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+                    enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+                    enc4 = chr3 & 63;
+                    if (isNaN(chr2)) {
+                        enc3 = enc4 = 64;
+                    } else if (isNaN(chr3)) {
+                        enc4 = 64;
+                    }
+                    output = output +
+                    _keyStr.charAt(enc1) + _keyStr.charAt(enc2) +
+                    _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+                }
+                return output;
+            }
+         
+            // public method for decoding
+            this.decode = function (input) {
+                var output = "";
+                var chr1, chr2, chr3;
+                var enc1, enc2, enc3, enc4;
+                var i = 0;
+                input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+                while (i < input.length) {
+                    enc1 = _keyStr.indexOf(input.charAt(i++));
+                    enc2 = _keyStr.indexOf(input.charAt(i++));
+                    enc3 = _keyStr.indexOf(input.charAt(i++));
+                    enc4 = _keyStr.indexOf(input.charAt(i++));
+                    chr1 = (enc1 << 2) | (enc2 >> 4);
+                    chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+                    chr3 = ((enc3 & 3) << 6) | enc4;
+                    output = output + String.fromCharCode(chr1);
+                    if (enc3 != 64) {
+                        output = output + String.fromCharCode(chr2);
+                    }
+                    if (enc4 != 64) {
+                        output = output + String.fromCharCode(chr3);
+                    }
+                }
+                output = _utf8_decode(output);
+                return output;
+            }
+         
+            // private method for UTF-8 encoding
+            _utf8_encode = function (string) {
+                string = string.replace(/\r\n/g,"\n");
+                var utftext = "";
+                for (var n = 0; n < string.length; n++) {
+                    var c = string.charCodeAt(n);
+                    if (c < 128) {
+                        utftext += String.fromCharCode(c);
+                    } else if((c > 127) && (c < 2048)) {
+                        utftext += String.fromCharCode((c >> 6) | 192);
+                        utftext += String.fromCharCode((c & 63) | 128);
+                    } else {
+                        utftext += String.fromCharCode((c >> 12) | 224);
+                        utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+                        utftext += String.fromCharCode((c & 63) | 128);
+                    }
+         
+                }
+                return utftext;
+            }
+            _utf8_decode = function (utftext) {
+                var string = "";
+                var i = 0;
+                var c = c1 = c2 = 0;
+                while ( i < utftext.length ) {
+                    c = utftext.charCodeAt(i);
+                    if (c < 128) {
+                        string += String.fromCharCode(c);
+                        i++;
+                    } else if((c > 191) && (c < 224)) {
+                        c2 = utftext.charCodeAt(i+1);
+                        string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+                        i += 2;
+                    } else {
+                        c2 = utftext.charCodeAt(i+1);
+                        c3 = utftext.charCodeAt(i+2);
+                        string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+                        i += 3;
+                    }
+                }
+                return string;
+            }       
+    },
+  //复制方法
+  
+  //websocket配置
+  //查询离线消息
+  queryUnMsg:function(context){
+    let user = JSON.parse(localStorage.getItem("tldm"));
+    let userId = context.state.userInfo.userId || user.userId;
+    axios.get(url.queryUnMsg+'/'+userId).then((res)=>{
+      for (let item in res.data.data){
+        let sender = Number(res.data.data[item].sender);
+        let addData = res.data.data[item];
+        context.dispatch('receiveRedPointMsg', addData)
+        // indexedDB.addData('senderId',sender,context.state.chat.chatArr,addData);
+      }
+    })
+  },
+  //socket登录
+  connectSocket:function (context) {
+    let localUser =JSON.parse(localStorage.getItem("tldm"));
+    let userInfo =context.getters.userInfo;
+    let myUserId = userInfo.userId||localUser.userId;
+    let host_ip= '192.168.2.124:8084/tldollar/websocket/';
+    let ws_uri = "ws://"+host_ip+myUserId;
+    let webSock=context.state.chat.webSock;
+    if (!webSock||webSock.readyState !== webSock.OPEN) {
+      context.state.chat.webSock=webSock=new WebSocket(ws_uri);
+      //收到信息回调
+      webSock.onmessage = function (e) {
+        console.log('收到消息',e)
+        context.dispatch('receiveSockMsg',e)
+      };
+      //关闭
+      webSock.onclose = function (e) {
+        context.dispatch('reconnet');
+        console.log('断开连接',e,'自己退出了')
+      };
+      //打开
+      webSock.onopen = function () {
+        // console.log(context.state.userInfo.id)
+        context.dispatch('queryUnMsg',context)
+        console.log('websocket打开了')
+      };
+      //连接发生错误的回调方法
+      webSock.onerror = function () {
+        // initWebSocket();
+        // console.log("WebSocket连接发生错误");
+      }
+    }
+  },
+  //获取历史记录
+  showChatWindow:({state,commit},data)=>{
+    state.chat.chatArr = [];
+    state.chat.myChatArr = [];
+    console.log(data.hearUserId);
+    let qsc = data.hearUserId;
+    indexedDB.queryMergeMsg(state.chat.db,data.myUserId,data.hearUserId,state.chat.myChatArr,state.chat.chatArr,qsc);
+  },
+  //重新登录 websocket
+  async tryLogin(context){
+    if(localStorage.getItem('user')){
+      // await context.dispatch('GetUserInfoAction');
+      context.dispatch('connectSocket')
+    }
+  },
+  //自动重连逻辑
+  reconnet({state,dispatch}){
+    if(state.chat.reconnect){
+      console.log('我是true 在走自动重连')
+      dispatch('connectSocket')
+    }
+  },
+  //接收websocket信息
+  receiveSockMsg({commit,getters,dispatch},e) {
+    let data = JSON.parse(e.data);
+    // console.log(data);
+    let protocol = data.t;
+    let dictate = Number(data.status);
+    if (dictate == 24) {
+      // console.log(data)
+      commit('PRIVATE_CHAT', data);
+      dispatch('receiveRedPointMsg', data)
+    } else if (dictate == 20) {
+      Vue.prototype.$message('账号在别处登录!');
+      commit('CLOSE_WEBSOCKET');
+      router.push({name: 'Login'});
+    }
+  },
+  //收到红点信息 由上面函数分发而来
+  receiveRedPointMsg({state,commit},data){
+    console.log('进来了')
+    // console.log(data,333333333333333,state.chat.curChatId,data.sender)
+    if(state.chat.curChatId==data.sender){
+      console.log('错误')
+      return false
+    }
+    let redObj = {};
+    if (!localStorage.getItem('hongdian')) {
+      redObj[data.sender] = 1;
+    } else {
+      redObj = JSON.parse(localStorage.getItem('hongdian'));
+      if (redObj[data.sender]) {
+        redObj[data.sender]++;
+        // console.log(redObj[data.sender])
+      } else {
+        redObj[data.sender] = 1;
+      }
+    }
+    store.commit('REDMSG', redObj);
+    console.log('存了',JSON.stringify(redObj))
+    localStorage.setItem("hongdian", JSON.stringify(redObj));
+  }
+    
+}

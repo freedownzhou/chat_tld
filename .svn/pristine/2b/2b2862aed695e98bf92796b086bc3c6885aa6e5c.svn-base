@@ -1,0 +1,136 @@
+let RegExp = {}
+RegExp.install = function (Vue, options) {
+  // 手机校验
+  const phoneRegExp = new window.RegExp(`^[0-9]{8,11}$`)
+  const AphoneRegExp = /^1[3|4|5|7|8]\d{9}$/;
+  // 邮箱检验，正则来源：https://blog.csdn.net/liudglink/article/details/78511759
+  const emailRegExp = new window.RegExp(`^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*\\.[a-zA-Z0-9]{2,6}$`)
+  // 验证码格式校验正则
+  const captchaRegExp = new window.RegExp('^[a-zA-Z0-9]{4,6}$')
+  // 密码格式校验正则
+  const passwordsRegExp = new window.RegExp(`^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,20}$`)
+  // 六位纯数字密码格式校验正则
+  const numberPasswordsRegExp = new window.RegExp(`^[0-9]{6}$`)
+  // 价格格式校验正则
+  const priceRegExp = new window.RegExp(`^[\\d]+(\\.\\d+){0,1}$`)
+  //身份证验证
+  const userIdRegExp = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
+  //姓名验证
+  const userNameRegExp = /^[\u4e00-\u9fa5]+$/;
+  
+  let _RegExp = {
+    telephone (telephone) {
+      return phoneRegExp.test(telephone)
+    },
+    Aphone(telephone){
+      return AphoneRegExp.test(telephone)
+    },
+    email (email) {
+      return emailRegExp.test(email)
+    },
+    captcha (captcha) {
+      return captchaRegExp.test(captcha)
+    },
+    password (password) {
+      return passwordsRegExp.test(password)
+    },
+    numberPassword (password) {
+      return numberPasswordsRegExp.test(password)
+    },
+    price (price) {
+      return priceRegExp.test(price)
+    },
+    userId(userId){
+      return userIdRegExp.test(userId)
+    },
+    userName(userName){
+      return userNameRegExp.test(userName)
+    },
+    //数字转大写汉字
+    digitUppercase(n) {
+      var fraction = ['', ''];
+      var digit = [
+          '零', '壹', '贰', '叁', '肆',
+          '伍', '陆', '柒', '捌', '玖'
+      ];
+      var unit = [
+          ['点', '万', '亿'],
+          ['', '拾', '佰', '仟']
+      ];
+      var head = n < 0 ? '欠' : '';
+      n = Math.abs(n);
+      var s = '';
+      for (var i = 0; i < fraction.length; i++) {
+          s += (digit[Math.floor(n * 10 * Math.pow(10, i)) % 10] + fraction[i]).replace(/零./, '');
+      }
+      s = s || '整';
+      n = Math.floor(n);
+      for (var i = 0; i < unit[0].length && n > 0; i++) {
+          var p = '';
+          for (var j = 0; j < unit[1].length && n > 0; j++) {
+              p = digit[n % 10] + unit[1][j] + p;
+              n = Math.floor(n / 10);
+          }
+          s = p.replace(/(零.)*零$/, '').replace(/^$/, '零') + unit[0][i] + s;
+      }
+      return head + s.replace(/(零.)*零元/, '元')
+          .replace(/(零.)+/g, '零')
+          .replace(/^整$/, '零元整');
+    },
+    //当天时间
+    getNowFormatDate() {
+      var date = new Date();
+      var seperator1 = ".";
+      var year = date.getFullYear();
+      var month = date.getMonth() + 1;
+      var strDate = date.getDate();
+      if (month >= 1 && month <= 9) {
+        month = "0" + month;
+      }
+      if (strDate >= 0 && strDate <= 9) {
+        strDate = "0" + strDate;
+      }
+      var currentdate = year + seperator1 + month + seperator1 + strDate;
+      return currentdate;
+    },
+    //获取时间
+    getNowTime(time){
+      console.log(time)
+      let now = time;
+      let year = now.getFullYear(); //获取年份
+      let month = now.getMonth()+1; //获取月份 月份要+1
+      month = month<10?'0'+month:month;
+      let date = now.getDate(); //获取日期
+      date = date<10?'0'+date:date;
+      let hour = now.getHours(); //获取时
+      let minu = now.getMinutes(); //获取分钟
+      let sec = now.getSeconds(); //获取秒钟
+      return year+'-'+month+'-'+date+' '+hour+':'+minu+':'+sec;
+    },
+    //浏览器识别
+    getBrowser(call) {
+      var UserAgent = navigator.userAgent.toLowerCase();
+      var browser = null;
+      var browserArray = {
+        IE: window.ActiveXObject || "ActiveXObject" in window, // IE
+        Chrome: UserAgent.indexOf('chrome') > -1 && UserAgent.indexOf('safari') > -1, // Chrome浏览器
+        Firefox: UserAgent.indexOf('firefox') > -1, // 火狐浏览器
+        Opera: UserAgent.indexOf('opera') > -1, // Opera浏览器
+        Safari: UserAgent.indexOf('safari') > -1 && UserAgent.indexOf('chrome') == -1, // safari浏览器
+        Edge: UserAgent.indexOf('edge') > -1 // Edge浏览器
+      };
+      for (var i in browserArray) {
+        if (browserArray[i]) {
+          browser = i;
+        }
+      }
+      return browser;
+    },
+    ss(){
+      alert("调用成功")
+    }
+  }
+  Vue.prototype.$RegExp = _RegExp
+  Vue.RegExp = _RegExp
+}
+export default RegExp

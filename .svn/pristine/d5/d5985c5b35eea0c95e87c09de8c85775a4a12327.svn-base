@@ -1,0 +1,105 @@
+<template>
+  <div class="SC_topbox">
+    <van-nav-bar
+      left-arrow
+      left-text="实名认证"
+      @click-left="onClickLeft"
+      @click-right="onClickRight"
+    >
+      <van-icon slot="right" >
+        <img src="../../assets/images/SecuritySettings/jlu.png" width="24px">
+      </van-icon>
+    </van-nav-bar>
+<!--    内容-->
+    <div class="security_center FW_one">
+<!--    手机号码-->
+    <van-cell-group>
+      <van-field
+        v-model="realName"
+        label="真实姓名"
+        placeholder="请输入您的真实姓名"
+        :error-message="error_phone"
+      />
+
+<!-- 持卡人证件号码-->
+      <van-field
+        v-model="Idcard"
+        label="持卡人身份证"
+        placeholder="请输入您的身份证号码"
+        :error-message="error_Idcard"
+      />
+    </van-cell-group>
+      <van-button type="primary" size="large" class="mt50" @click="next_to">确定</van-button>
+    </div>
+  </div>
+</template>
+
+<script>
+    export default {
+        name: "FrogetWord",
+      data () {
+          return{          
+            realName:"",
+            bankcard:"",
+            Idcard:"",
+            //错误显示
+            error_captcha:"",
+            error_phone:"",
+            error_bankcard:"",
+            error_Idcard:"",            
+            // 定时器
+            timer: null,
+            time: 60,
+            disabled: false,
+          }
+      },
+      methods: {
+        // 输入校验
+        disableds () { 
+          //身份证校验
+          if (!(this.$RegExp.userId(this.Idcard))) {
+            this.$notify('身份证输入有误 ');
+            return false
+          }          
+          return true
+        },
+        //  下一步
+        next_to () {
+          if ( this.disableds()){
+            this.$post("/tldollar/sysUser/certAuth",{
+                userId:this.$store.state.userInfo.userId,
+                realName:this.realName,
+                idCard:this.Idcard
+            },{urlEncode:"urlEncode"}).then(
+                res=>{                                    
+                      if(res.code == 0){                        
+                        this.$post("/tldollar/sysUser/refreshUserInfo",{userId:this.$store.state.userInfo.userId},{urlEncode:"urlEncode"}).then(
+                        res=>{
+                            if(res.code == 0){
+                                this.$store.state.PromptStatus = false;
+                                this.$store.state.userInfo = res.data;
+                                localStorage.setItem("tldm",JSON.stringify(res.data))
+                                this.$router.push({name:'Index'})
+                            }
+                        }
+                      )                 
+                    }
+                  }
+                
+            )
+            
+          }
+        },       
+        onClickLeft() {          
+           this.$router.push({name:'Index'})
+        },
+        onClickRight() {
+          console.log('按钮');
+        }
+      }
+    }
+</script>
+
+<style scoped>
+
+</style>

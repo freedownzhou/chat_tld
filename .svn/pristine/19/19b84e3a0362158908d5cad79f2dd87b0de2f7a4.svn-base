@@ -1,0 +1,59 @@
+/*文字颜色:dark深色、light浅色、dusky柔和、solid纯正色、rich艳丽*/
+.bh-color_white {
+  color: #FFF;
+}
+
+.bh-color_light {
+  color: #999;
+}
+
+.bh-color_standard {
+  color: #666;
+}
+
+.bh-color_dark {
+  color: #333;
+}
+
+/*提示文字颜色*/
+.bh-color_prompt {
+  color: #FF7C44;
+}
+
+/*被选中时颜色*/
+.bh-color_select {
+  color: #55ADD6;
+}
+
+/*鼠标划过时的颜色*/
+.bh-color_hover {
+  color: #0BB2FE;
+}
+
+/*主要的背景色，除了首页以外的头部导航背景色*/
+.bh-background_main {
+  background: #2C3253;
+}
+
+/*一般标题的背景色*/
+.bh-background_normal {
+  background-color: #F4FBFF;
+}
+
+/*表头背景色*/
+.bh-background_th {
+  background: #F2F2F2;
+}
+
+/*天蓝色背景*/
+.bh_tianblue{
+  background-color: #3DA8D7;
+}
+/*天蓝色字体*/
+.color_tianblue{
+  color: #3DA8D7;
+}
+/*绿色字体*/
+.color_green{
+  color: #449522;
+}

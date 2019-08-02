@@ -1,0 +1,503 @@
+<template>
+    <!-- 联系卖家 -->
+    <div class="chat" ref="chatH">
+        <div class="chat_tit">
+            <span><a><img src="../img/icon_jyjl_l.png" alt="" @click="onClickLeft"> 联系卖家</a></span>
+            <span>
+                <img src="../img/index_jl.png" alt="">
+            </span>
+        </div>
+        <div class="chat_box"  ref="chatList">
+            <div class="chat_info">
+                <p><img src="../img/test.png" alt=""></p>
+                <p>
+                    <i class="name">{{contactId}}</i>
+                    <i>30日成单：188</i>
+                </p>
+            </div>
+            <div class="chat_msg" ref="chatH" id="chatBox">
+                <p class="create_time">
+                    <i>2019-03-18</i>
+                    <i>您已成功下单，请及时支付。（13:20:38）</i>
+                </p>
+              <span :class="item.sender===userId?'pay_chat_window_reply':'pay_chat_window_receive'" v-for="(item,index) in chats.allChatArr" :key=index>
+                <i :class="item.sender===userId?'pay_chat_window_reply_time':'pay_chat_window_receive_time'" v-if="item.createTime!=''">{{item.createTime}}</i>
+                <i :class="item.sender===userId?'pay_chat_window_reply_content':'pay_chat_window_receive_content'">
+                    <img :src="myPic" alt="" v-if="item.sender===userId">
+                    <img :src="youPic" alt="" v-else>
+                    <u v-html="item.message"></u>
+                </i>
+              </span>
+            </div>
+            <div class="chat_send">
+                <p>
+                    <i><img src="../img/icon_yy.png" alt=""></i>
+                    <textarea ref="sendBox" name="" id="" cols="30" :rows="textRow" v-model="sendMsg" v-on:input ="inputFunc(sendMsg)"></textarea>
+                    <i><img src="../img/chat_send.png" alt="" @click="send(sendMsg,contactId)"></i>
+                </p>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+  import indexedDB from "../indexedDB";
+  import {mapState,mapGetters} from 'vuex';
+    export default {
+        data(){
+            return{
+              contactId:0,
+              chat_msg:0,
+              userId:'',       //用户id
+              myPic:require('../img/timg.jpg'),
+              youPic:require('../img/test.jpg'),
+              chatArr:[],
+              sendMsg:'',         //发送信息
+              beforeTime:'',  //之前的时间
+              afterTime:'',   //现在的时间
+              timeReduce:0,  //时间差
+              textRow:1,     //输入框高度
+              browser:'',    //浏览器名字
+              sender:0,      //发送人ID
+              receiverId:0    //接收人ID
+
+            }
+        },
+        mounted(){
+          this.$nextTick(() => {
+            this.userId = this.userInfo.userId;
+            this.receiverId = this.contactId;
+            this.chatArr = this.chat.allChatArr;
+            // this.getBom();
+            this.goBoom();
+          });
+        },
+        methods:{
+          //把双字节的替换成两个单字节的然后再获得长度
+          getBLen(str) {
+            if (str == null) return 0;
+            if (typeof str != "string") {
+              str += "";
+            }
+            return str.replace(/[^\x00-\xff]/g, "01").length;
+          },
+          // getBom(){
+          //   this.browser  = this.$RegExp.getBrowser();
+          //   if(this.browser=='Chrome'){
+          //     this.textRow = 2;
+          //   }
+          //   if(this.browser=='Firefox'){
+          //     this.textRow = 1;
+          //   }
+          // },
+          //聊天框高度变化
+          inputFunc(msg){
+            this.getBLen(msg);
+            if(this.getBLen(msg)>30){
+              if(this.browser=='Chrome'){
+                this.textRow = 3;
+              }
+              if(this.browser=='Firefox'){
+                this.textRow = 2;
+              }
+            }else{
+              if(this.browser=='Chrome'){
+                this.textRow = 2;
+              }
+              if(this.browser=='Firefox'){
+                this.textRow = 1;
+              }
+            }
+          },
+          //发送或接收消息后到窗口底部
+          goBoom(){
+            this.$nextTick(() => { //使用nextTick为了保证dom元素都已经渲染完毕
+              let div = document.getElementById('chatBox');
+              // alert(div.scrollHeight);
+              // alert(div.scrollHeight)
+              div.scrollTop = div.scrollHeight;
+              // alert(8)
+            });
+          },
+          //发送信息
+          send(msg,contactId){
+            let addData = {};
+            let now = new Date();
+            let nowTime = this.$RegExp.getNowTime(now);
+            let timestamp = new Date().getTime();
+            console.log(timestamp)
+            let sender = this.userInfo.userId;
+            let spenName = this.userInfo.userAccountName;
+            let onDay = 86400;
+            console.log(sender)
+            if(msg==''||msg==null||msg==undefined){
+              this.$message('请输入内容');
+              return
+            }else{
+              this.beforeTime = this.afterTime;
+              this.afterTime = (new Date()).getTime();
+              this.timeReduce = (this.afterTime-this.beforeTime)/1000;
+            }
+            if(this.beforeTime!=''){
+              if(this.timeReduce<180){
+                nowTime='';
+              }else if(this.timeReduce>=onDay){
+                nowTime = this.$RegExp.getNowFormatDate();
+              }
+            }
+            addData = {
+              createTime:nowTime,
+              headImage:require('../img/test.jpg'),
+              message:msg,
+              sender:sender,
+              receiver:Number(contactId),
+              nickName:sender,
+              timestamp:timestamp,
+            }
+            this.sendMsg = '';
+            this.$store.commit('WEBSOCK_SEND',addData);
+            // console.log(this.chats);
+            this.goBoom();
+            this.inputFunc();
+            this.chatArr = this.chats.allChatArr
+            // console.log(this.chats)
+            // console.log('打印')
+
+          },
+          onClickLeft() {
+            console.log('返回');
+            this.$store.commit('CLOSE_CHATWINDOW');
+            this.$router.go(-1);
+          },
+        },
+      created() {
+          this.contactId = this.$route.query.sendId
+        this.goBoom();
+        // console.log('重复')
+        // console.log(this.chat.allChatArr)
+      },
+      computed: {
+        ...mapState(['userInfo','chat']),
+        ...mapGetters(['chats'])
+      },
+      watch:{
+        'chat.allChatArr.length'(n,o){
+          this.goBoom();
+          console.log(n,o,1111111111111)
+        }
+      },
+    }
+</script>
+
+<style lang='scss' scoped>
+  .chat{
+        height: 100%;
+        background: url('../img/public_bg.png') no-repeat;
+        background-size: 100% 100%; 
+        overflow: hidden;
+        .chat_tit{
+            display: flex;
+            height: 44px;
+            padding: 0 16px 0 16px;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 17px;
+            color: white;
+            span{
+                display: inline-flex;
+                height: inherit;
+                align-items: center;
+            }
+            span:first-child{
+                a{
+                    display: inherit;
+                    align-items: center;
+                    img{
+                        width: 12px;
+                        height: 24px;
+                        margin-right: 10px;
+                    }
+                }
+            }
+            span:last-child{
+                img{
+                    width: 24px;
+                    height: 24px;
+                    margin-left: 13px;
+                }
+            }
+        }
+        .chat_box{
+            display: flex;
+            height: 100%;
+            background: #F2F2F2;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            .chat_info{
+                display: flex;
+                width: 100%;
+                padding: 0 0 0 15px;
+                align-items: center;
+                height: 70px;
+                margin-top: 10px;
+                background: white;
+                box-shadow:0px 4px 4px -4px rgba(0,0,0,0.5);
+                border-radius:4px;
+                p{
+                    display: inline-flex;
+                    flex-wrap: wrap;
+                }
+                p:first-child{
+                    width:55px;
+                    height:55px;
+                    background:rgba(255,255,255,1);
+                    box-shadow:0px 4px 4px -3px rgba(0,0,0,0.5);
+                    border-radius: 50%;
+                    align-items: center;
+                    justify-content: center;
+                    margin-right: 23px;
+                    img{
+                        width: 50px;
+                        height: 50px;
+                    }
+                }
+                p:last-child{
+                    align-content: center;
+                    i{
+                        width: 100%;
+                        font-size: 12px;
+                        line-height: 12px;
+                        color: #999;
+                    }
+                    .name{
+                        font-size: 14px;
+                        line-height: 14px;
+                        color: #333;
+                        margin-bottom: 5px;
+                    }
+                }
+            }
+            .chat_msg{
+                display: flex;
+                width: 100%;
+                height: 460px;
+                overflow: scroll;
+                align-content: flex-start;
+                flex-wrap: wrap;
+                .create_time{
+                    margin: 10px 0 26px 0;
+                    display: inline-flex;
+                    width: 100%;
+                    flex-wrap: wrap;
+                    align-content: flex-start;
+                    i{
+                        width: 100%;
+                        text-align: center;
+                        font-size: 12px;
+                        color: #333333;
+                        line-height: 12px;
+                    }
+                    i:last-child{
+                        color: #999;
+                        margin-top: 10px;
+                    }
+                }
+                ul{
+                    display: flex;
+                    padding: 0 16px 0 16px;
+                    width: 100%;
+                    flex-wrap: wrap;
+                    li{
+                        display: inline-flex;
+                        width: 100%;
+                        margin-bottom: 10px;
+                        flex-wrap: wrap;
+                        span{
+                            display: inline-flex;
+                            width: 100%;
+                            height: 24px;
+                            justify-content: center;
+                            margin-bottom: 20px;
+                            u{
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                padding: 0 10px 0 10px;
+                                height: inherit;
+                                background: #D8D8D8;
+                                border-radius: 4px;
+                                font-size: 12px;
+                                color:#333;
+
+
+                            }
+                        }
+                    }
+                    li:last-child{
+                        margin-bottom: 40px;
+                    }
+                    .you{
+                        justify-content: flex-start;
+                        i{
+                            display: inline-flex;
+                            align-content: flex-start;
+                        }
+                        .msg_Logo{
+                            img{
+                                width: 38px;
+                                height: 38px;
+                                margin-right: 10px;
+                            }
+                        }
+                        .msg_box{
+                            width: 205px;
+                            padding: 10px;
+                            background: white;
+                            font-size: 12px;
+                            color: #333;
+                            line-height: 17px;
+                            border-radius: 4px;
+                        }
+                    }
+                    .me{
+                        justify-content: flex-end;
+                        i{
+                            display: inline-flex;
+                            align-content: flex-start;
+                        }
+                        .msg_Logo{
+                            img{
+                                width: 38px;
+                                height: 38px;
+                                margin-left: 10px;
+                            }
+                        }
+                        .msg_box{
+                            width: 205px;
+                            padding: 10px;
+                            background:#3DA8D7;
+                            font-size: 12px;
+                            color: #FFFFFF;
+                            line-height: 17px;
+                            border-radius: 4px;
+                        }
+                    }
+                }
+
+            }
+            .chat_send{
+                position: fixed;
+                bottom: 0;
+                display: flex;
+                width: 100%;
+                height: 64px;
+                background: white;
+                p{
+                    display: flex;
+                    width: 100%;
+                    padding: 10px 16px 10px 16px;
+                    align-items: center;
+                    justify-content: space-between;
+                    i{
+                        display: inline-flex;
+                        img{
+                            width: 24px;
+                            height: 24px;
+                        }
+                    }
+                    textarea{
+                        width: 275px;
+                        height: 44px;   
+                        background:#F2F2F2;
+                        border-radius:4px;
+                        border:1px solid #DDDDDD;
+                        resize: none;
+                    }
+                }
+            }
+          .pay_chat_window_receive{
+            display: flex;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 0 auto 35px auto;
+            min-width: 275px;
+            .pay_chat_window_receive_time{
+              display: block;
+              text-align: center;
+              font-size: 11px;
+              color: #333;
+              padding: 0 5px 0 5px;
+              height: 20px;
+              line-height: 20px;
+              background: #CFCFCF;
+              border-radius: 3px;
+              margin: 5px 0 5px 0;
+            }
+            .pay_chat_window_receive_content{
+              display: inline-flex;
+              width: 100%;
+              margin-left: 15px;
+              img{
+                width: 25px;
+                height: 25px;
+                margin-right: 10px;
+                border-radius: 50%;
+              }
+              u{
+                display: inline-flex;
+                max-width: 157px;
+                padding:5px 10px;
+                background: #55ADD6;
+                border-radius: 4px;
+                color: white;
+                font-size: 14px;
+              }
+            }
+          }
+          .pay_chat_window_reply{
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            flex-wrap: wrap;
+            margin: 0 auto 35px auto;
+            min-width: 275px;
+            .pay_chat_window_reply_time{
+              display: block;
+              text-align: center;
+              font-size: 11px;
+              color: #333;
+              padding: 0 5px 0 5px;
+              height: 20px;
+              line-height: 20px;
+              background: #CFCFCF;
+              border-radius: 3px;
+              margin: 5px 0 5px 0;
+            }
+            .pay_chat_window_reply_content{
+              position: relative;
+              display: block;
+              width: 100%;
+              margin-right: 15px;
+              img{
+                float: right;
+                width: 25px;
+                height: 25px;
+                border-radius: 50%;
+                margin-left: 10px;
+              }
+              u{
+                display: inline-flex;
+                max-width: 157px;
+                padding:5px 10px;
+                background: #55ADD6;
+                border-radius: 4px;
+                color: white;
+                font-size: 14px;
+                float: right;
+              }
+            }
+          }
+        }
+    }   
+</style>

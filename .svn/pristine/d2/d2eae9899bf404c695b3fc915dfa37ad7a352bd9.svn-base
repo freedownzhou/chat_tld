@@ -1,0 +1,115 @@
+import Vue from "vue"
+import axios from "axios";
+import router from "../router/index"
+import Store from "../store"
+
+
+// 配置rootUrl
+const service = axios.create({
+    baseURL: "http://192.168.2.124:8084",   // 配置的url
+    timeout: 8000,                          // 请求的超时时间
+    withCredentials: false                  // 允许携带cookie
+    //设置默认请求头，使post请求发送的是formdata格式数据// axios的header默认的Content-Type好像是'application/json;charset=UTF-8',我的项目都是用json格式传输，如果需要更改的话，可以用这种方式修改
+    // headers: {  
+    // "Content-Type": "application/x-www-form-urlencoded"
+    // },
+  });
+  
+// axios全局添加token
+service.interceptors.request.use(
+  config => {  
+    if(Store.state.userInfo.token == undefined)  {
+      config.headers["X-Token"] = null;
+    }else if (Store.state.userInfo.token) { 
+      config.headers["X-Token"] = Store.state.userInfo.token; 
+    }else{
+      return
+    }
+    return config;    
+  },
+  err => {
+    return Promise.reject(err);
+  }
+);
+let requestPool = [];
+export const AxiosPost = function(url,Datas,config){
+  //用户请求可能无需传值 但是用户需要传输三参数
+  let params = Datas||{};       
+  //额外参数配置
+  if(!config){
+    config={}
+  }
+  else{
+    if(config.urlEncode){
+      config.headers={'Content-Type':'application/x-www-form-urlencoded'}
+      params = this.qs.stringify(Datas)
+    }
+    if(config.json){
+      config.headers={'Content-Type':'application/json'}
+    }
+    if(config.multipart){
+      config.headers={'Content-Type':'multipart/form-data'}
+    }
+    // if(config.encrypt){
+    //   //数据处理函数
+    //   config.transformRequest=[function (params) {
+    //     let ret = '';
+    //     for (let it in params) {
+    //       ret += encodeURIComponent(it) + '=' + encodeURIComponent(params[it]) + '&'
+    //     }
+    //     return ret;
+    //   }];
+    
+  }
+  return service.post(url, params, config)
+      .then(response => {
+        const res = response.data;
+        res.code = parseInt(res.code);
+        if (res.code === 0) {
+          return res || true
+        } else if (res.code === 401) {
+          Vue.prototype.$message(res.msg);
+          router.push({name:'Login'})
+          // return true
+        } 
+        else if(res.code === 1){
+            this.$store.state.PromptStatus = false;
+            this.$notify(res.msg);
+            return res || true
+        }
+        // else {
+        //   Vue.prototype.$message(res.msg);
+        //   return false
+        // }
+      })      
+      .catch((res) => {
+        this.$store.state.PromptStatus = false;
+        this.$notify('网络请求错误,稍后再试');
+      })
+}
+
+Plugin.install = function (Vue, options) {
+  Vue.axios = service
+  window.axios = service
+  Object.defineProperties(Vue.prototype, {
+    $post: {
+      get() {
+        return AxiosPost
+      }
+    },
+    $get: {
+      get() {
+        return service.get
+      }
+    },
+    $req: {
+      req() {
+        return service.request
+      }
+    }
+  })
+}
+
+Vue.use(Plugin);
+
+export default service

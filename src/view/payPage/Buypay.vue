@@ -1,0 +1,508 @@
+<template>
+  <div class="Pay_box">
+    <div class="Pay">
+        <div class="Pay_tit">
+            <van-nav-bar left-arrow left-text="买入支付" @click-left="onClickLeft"></van-nav-bar>       
+        </div>
+        <div class="payCenter">
+            <div class="left boxBor">
+                <p><i><img src="../../img/icon_jyjl_time.png" alt=""></i><b>{{ succShow ? "等待放币":"请付款"}}</b></p>
+                <span v-show="!succShow">请于{{m}}分{{s}}秒内向{{nickName}}支付</span>
+
+            </div>
+            <div class="right boxBor">
+                <p><i><img src="../../img/Contact player.png" alt=""></i></p>
+                <span>联系对方</span>
+            </div>
+        </div>
+        <div class="Pay_con SC_topbox pict boxBor">
+            <div class="priceBox boxBor">
+                <p>{{totalPrice}}<b>$</b></p>
+                <span>单价：{{unitPrice}} $/TLD</span>
+                <span>数量：{{tldNum}} TLD</span>
+            </div>
+            <div class="Businform">
+                <p v-show="!succShow" @click="payStatus"><span><strong><img :src="payLogo" alt=""></strong>{{paytitle}}收款</span><i><van-icon name="arrow" /></i></p>
+                <p v-show="!succShow"><span>收款人</span><i>{{realName}}</i></p>
+                <p v-show=" payImg ? (true && !succShow) :false" @click="qrStatus" ><span>{{payType}}收款码</span><i><strong><img src="../../img/qr.png" alt=""></strong><van-icon name="arrow" /></i></p>
+                <p v-show="!succShow"><span>{{payType}}账号</span><i>{{payAccount}}<strong><img src="../../img/copy.png" alt=""></strong></i></p>
+                <p><span>订单号</span> <i>{{orderNo}}</i></p>
+                <p v-show=" payRemarkNo ? (true) :false"><span>付款参考号 </span><i>{{payRemarkNo}}</i></p>
+                <p><span>卖家昵称 </span><i>{{nickName}}</i></p>
+            </div>   
+            <p><i><img src="../../img/icon_bzj.png" alt=""></i><span>对方已缴纳10tldollar保证金</span></p>
+        </div>
+    </div>
+    <footer>
+        <button v-show="!succShow">取消订单</button>
+        <button v-show="!succShow" @click="Confirm">我已付款</button>
+        <button v-show="succShow" class="Onbutton" @click="ToOrder">我的订单</button>
+     
+    </footer>
+    <van-popup  v-model="show" position="bottom" :style="{ height: '157px'}" class="Popup">
+      <ul>
+        <li v-for="(items,ind) in payInfoList" :key="ind" @click="payWay(ind)">
+          <i><img :src="items.logo" alt=""></i>
+          <p>{{items.payType}}</p>
+        </li>
+      </ul>
+    </van-popup>
+    <van-popup  v-model="qrShow" class="qr">
+      <i>
+        <img :src="payImg">
+      </i>
+    </van-popup>
+    <van-popup  v-model="conShow" class="confirm boxBor">
+      <div>
+        <h3>确认付款</h3>
+        <p>请确认您已向卖家付款<span>恶意点击直接冻结账号</span></p>
+      </div>
+      <ul>
+        <li><button  @click="payBtn(1)">我还没有</button></li>
+        <li><button class="onbtn" @click="payBtn(2)">我确定已付款</button></li>
+      </ul>
+    </van-popup>
+  </div>
+</template>
+<script>
+import { mapActions } from "vuex";
+export default {
+  data() {
+    return {
+        paytitle:"选择付款方式",
+        //支付部分 二维码 账号       
+        payImg:null,
+        payAccount:null,
+        payType:null,
+        payLogo:null,
+        //二维码
+        qrShow:false,  //二维码
+        show:false,    //支付方式
+        conShow:false, //是否付款  
+        succShow:false,//成功付款
+        totalPrice:"--/--",
+        unitPrice:null,
+        tldNum:null,
+        nickName:null,
+        realName:null,
+        orderNo:null,
+        payRemarkNo:null,
+        orderId:null,
+        payInfoList:null,
+        endTime:null,
+        h:null,
+        m:null,
+        s:null,
+    }
+  },
+  mounted(){
+    // let list = (this.$route.orderId).data;
+    this.$get("/tldollar/orderInfo/toPayOrder",{
+      params:{
+        userId:this.$store.state.userInfo.userId,
+        orderId:(this.$route.params.orderId)
+      }
+    }).then(
+      res=>{
+        if(res.data.code == 0){
+          let list = res.data.data;
+          this.totalPrice = list.totalPrice;
+          this.unitPrice  = list.unitPrice;
+          this.tldNum     = list.tldNum;
+          this.nickName   = list.nickName;
+          this.orderNo    = list.orderNo;
+          this.payRemarkNo= list.payRemarkNo;
+          this.payInfoList= list.payInfoList;
+          this.realName   = list.realName;  
+          this.endTime    = list.time;  
+          this.orderId    = list.orderId;
+          this.payImg     = list.payInfoList[0].img;    
+          this.payAccount = list.payInfoList[0].account;
+          this.payType    = list.payInfoList[0].payType;
+          this.payLogo    = list.payInfoList[0].logo;
+          this.paytitle   = list.payInfoList[0].payType;
+          this.countTime()
+        }
+      }
+    )
+    let list = (this.$route.params).data;
+    
+    
+
+  },
+  methods: {   
+    ...mapActions(['copyStr']) ,
+    onClickLeft() {
+      this.$router.go(-1);      
+    },
+    payStatus(){
+      this.show = !this.show
+    },
+    payWay(num){
+      if(this.payInfoList[num].img){
+        this.qrShow  = true
+      }
+      this.show       = false
+      this.payImg     = this.payInfoList[num].img
+      this.payAccount = this.payInfoList[num].account
+      this.payType    = this.payInfoList[num].payType
+      this.paytitle   = this.payInfoList[num].payType 
+      this.payLogo    = this.payInfoList[num].logo
+    },
+    qrStatus(){
+      this.qrShow = !this.qrShow
+    },
+    countTime(){
+        var myDate = new Date();
+        var now = myDate.getTime();       
+        var endDate = new Date(this.endTime);
+        var end = endDate.getTime();
+        var leftTime = end - now;
+        if (leftTime >= 0) {
+            this.m = Math.floor(leftTime / 1000 / 60 % 60);
+            this.s = Math.floor(leftTime / 1000 % 60);
+        }            
+        setTimeout(this.countTime, 1000);
+    },    
+    Confirm(){
+      this.conShow = !this.conShow
+    },
+    payBtn(num){
+      if(num == 1){
+        this.conShow = !this.conShow
+      }else if(num == 2){        
+        this.$get("/tldollar/orderInfo/alreadyPay",{
+          params:{
+              userId:this.$store.state.userInfo. userId,
+              orderId:this.orderId,
+            }
+        }).then(res=>{         
+          if(res.data.code == 0){
+            this.succShow = true
+            this.conShow = false
+          }
+        })
+      }
+    },
+    ToOrder(){
+      this.$router.push("/Navigation/OrderList")
+    }
+    
+  }
+};
+</script>
+<style lang="scss" scoped>
+.Onbutton{
+  color: #fff;
+  background: #3DA8D7;
+}
+.on{
+    color: #3DA8D7;    
+    position: relative;
+};
+.on:before{
+  content: "";
+  width: 100%;
+  height: 2px;
+  background-color:#3DA8D7;
+  position: absolute; 
+  bottom: -10px;
+  left: 0;
+}
+.Pay_box {
+  height: 100%;
+  background: url('../../img/public_bg.png');
+  background-size: cover;
+  position: relative;
+  .Pay {
+    display: flex;
+    flex-wrap: wrap;
+    height: 100%;
+    overflow: hidden;
+    .Pay_tit {
+      display: inline-flex;
+      width: 100%;
+      height: 44px;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 17px;
+      color: white;
+      padding-right: 16px;
+      div.van-nav-bar__left {
+        width: 100px;
+        position: absolute;
+        left: 0;
+        background: none;
+        text-align: left;
+        padding-left: 16px;
+        z-index: 4;
+        span.van-nav-bar__text {
+          color: #fff;
+          font-size: 14px !important;
+        }
+        i {
+          font-size: 14px;
+          color: #fff;
+        }
+      }
+      span {
+        display: inline-flex;
+        height: inherit;
+        align-items: center;
+        img {
+          width: 24px;
+          height: 24px;
+          margin-left: 13px;
+        }
+      }
+    }
+    .payCenter{
+        position: absolute;
+        top: 44px;
+        height: 100px;
+        width: 100%;
+        div{
+            display: inline-block;
+            width: auto;
+            padding: 9px 16px 0; 
+            color: #fff;           
+            i{
+                display: inline-block;
+                height: 36px;
+                width: 36px;
+                border-radius: 50%;                
+                overflow: hidden;
+                vertical-align: middle;
+                margin-bottom: 3px;
+                img{
+                    height: 100%;
+                    width: 100%;
+                }
+            }  
+            
+            b{
+                margin-left: 10px;
+                font-size: 20px;
+                margin-bottom: -3px;
+            }            
+            span{
+                padding-top: 4px;
+                display: block;
+                font-size: 12px;
+                margin-left: 46px;
+            }
+        }
+        div.left{
+            width:250px;
+        };
+        div.right{
+           float: right;
+           text-align: right;
+           span{
+               margin: 0;
+           }
+        }
+    }
+    
+    .Pay_con {
+      height: 100%;
+      height: calc(100% - 126px);
+      position: absolute;
+      top: 126px;
+      padding: 0 16px;
+      background: #F2F2F2;
+      box-sizing: border-box;
+      div.priceBox{
+          width: 100%;
+          margin: 15px 0 10px;
+          height:86px;
+          background:rgba(255,255,255,1);
+          box-shadow: 0px 4px 4px -4px rgba(0,0,0,0.5);
+          border-radius:4px;
+          padding: 10px;
+          p{
+              font-size: 36px;
+              color: #449522;
+              line-height: 40px;
+              b{
+                  font-size: 12px;
+              }
+          }
+          span{
+              color: #999999;
+              font-size: 12px;
+              margin-right: 64px;
+          }
+      }
+      .Businform{
+            background: #FFF;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            box-shadow: 0px 4px 4px -4px rgba(0,0,0,0.5);
+            border-radius: 4px; 
+            padding: 5px 9px;
+            p{
+                height: 42px;
+                border-bottom: 1px solid rgba(0,0,0,0.1);
+                font-size: 12px;
+                color: #999999;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                strong{
+                  display: inline-block;
+                  height: 24px;
+                  width: 24px;                  
+                  vertical-align: middle;
+                  img{
+                    height: 100%;;
+                  }
+                }
+                i{
+                  .van-icon{
+                    margin-left: 10px
+                  }
+                }
+            }
+            p:last-child{
+                border:none
+            }
+        } 
+        >p{
+            height: auto;
+            padding: 6px 0;
+            i{
+                display: inline-block;
+                height: 24px;
+                width: 24px;
+                vertical-align: middle;               
+                img{
+                    height: 100%;
+                    width: 100%;
+                }
+            }
+            span{
+                margin-left: 12px;
+                font-size: 12px;
+                color: #999;
+            }            
+        }
+    }
+  }
+  footer{
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    width: 100%;
+    height: 61px;
+    justify-content: space-around;
+    align-items: center;
+    background: #FFF;
+    button{
+      height: 38px;
+      width: 100%;
+      margin:5px;
+      color: #3DA8D7;
+      font-size: 14px;
+      border: 1px solid #3DA8D7;
+      text-align: center;
+      line-height:38px;
+      background: #FFF;
+      border-radius: 4px;
+    }
+  }
+  .Popup{
+    border-radius:8px 8px 0px 0px;
+    background:rgba(255,255,255,1);
+    ul{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100%;
+      width:100%;
+      li{
+        flex:1;
+       
+        i{
+          display:block;
+          height:40px;
+          width:40px;
+          margin:0 auto;
+          // background:yellow;
+          border-radius:50%;
+          img{
+            height:100%;
+            width:100%;
+          }
+
+        }
+        p{
+          padding:8px 0;
+          text-align:center;
+          font-size:14px;
+          color:#333;
+        }
+      }
+    }
+  }
+  .qr{
+    i{
+      width:64%;
+      height:auto;
+      img{
+        width:100%;
+      }
+    }
+  }
+  .confirm{
+    border-radius: 10px;
+    padding: 0 12px;
+    width: 268px;
+    height: auto;
+    div{
+      padding: 25px 25px 20px;
+      text-align: center;
+      border-bottom: 2px solid #CACACAFF;
+      h3{
+        font-size:16px;
+        font-weight:600;
+        color:rgba(51,51,51,1);
+        line-height:22px;
+        padding: 5px 0 19px 0;
+      }
+      p{
+        font-size: 12px;
+        color: #666666FF;
+        line-height: 18px;
+        span{
+          display: block;
+          color: #3DA8D7FF;
+         
+        }
+      }
+    }
+    ul{
+      display: flex;
+      width: 100%;
+      height: 52px;
+      line-height: 52px;
+      li{
+        flex: 1;
+        height: 100%;
+        button{
+          width: 100%;
+          text-align: center;
+          font-size: 14px;
+          color: #999999FF;
+          border: none;
+          background: none;
+        }
+        button.onbtn{
+          color: #3DA8D7FF
+        }
+      }
+    }
+  }
+}
+</style>
+

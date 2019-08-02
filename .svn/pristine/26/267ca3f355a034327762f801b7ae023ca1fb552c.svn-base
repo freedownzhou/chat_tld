@@ -1,0 +1,491 @@
+<template>
+    <div class="buys">
+        <div class="buys_tit">
+            <span>买入</span>
+            <span>               
+                <img src="../../img/recording.png" alt="">
+            </span>
+        </div>
+        <div class="buy_con">
+            <div class="content">
+                <ol class="sea">
+                    <li>
+                        <input type="text" placeholder="请输入您想购买的TLD数量">
+                    </li>
+                    <li>
+                        <button>搜索</button>
+                    </li>
+                </ol>
+                <div class="Lists">
+                    <ul>
+                        <li v-for="(items,ind) in payArrs" :key="ind">
+                            <i>
+                                <img :src="items.headImg" alt="">
+                            </i>
+                            <van-button @click="showPopup(items)">
+                                购买
+                            </van-button>
+                            <p>{{items.nickName}}<span>单价 ¥{{items.unitPrice}}</span></p>
+                            <div class="listCon">
+                                <div>
+                                    <strong>{{items.tldNum}}<i>TLD</i></strong>
+                                    <b><i><img src="../../img/sellGuide_zc.png" alt=""></i><span>数量</span></b>
+                                </div>
+                                <div>
+                                    <strong>{{items.max}}<i>TLD</i></strong>
+                                    <b><i><img src="../../img/sellGuide_xe.png" alt=""></i><span>限额</span></b>
+                                </div>
+                                <div>
+                                    <strong>（{{items.total}} | {{items.ratio}}）</strong>
+                                    <b><i><img src="../../img/Completion.png" alt=""></i><span>完成率</span></b>
+                                </div>
+                            </div>
+                            <div class="Paying">
+                                <span>收款方式</span>
+                                <div>
+                                    <i v-for="(item,index) in items.payTypeList" :key="index"><img :src="item.logo" alt=""></i>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <van-popup v-model="show" position="bottom" round :style="{ height: '257px' }" >
+                <h3 class="boxBor"><b>买入</b><span>单价<i>${{popPrice}}(¥{{poprmb}})</i></span></h3>
+                <div class="boxBor">
+                    <p class="upBtn"><input type="text" placeholder="请输入购买数量" v-model="popTldNum" ><button @click="maxBtn">全部买入</button></p>
+                    <div>
+                        <div class="left">
+                            <p>限额：<i>{{popmin}}-{{popmax}}</i>TLD</p>
+                            <p>交易数量：<i>{{popTldNum}}</i>TLD</p>
+                        </div>
+                        <div class="right">
+                            <p>交易总额</p>
+                            <span>${{Totalprice}}</span>
+                        </div>
+                    </div>
+                    <button @click="Order">确认下单</button>
+                </div>
+            </van-popup>
+        </div>
+    </div>
+</template>
+
+<script>
+import {mapActions} from 'vuex'
+export default {
+    data(){
+        return{
+            payArrs:null,
+            show:false,
+            // 弹出各个值
+            popPrice:null,
+            popuserId:null,
+            poprmb:null,
+            popmax:null,
+            popmin:null,
+            popTldNum:null,
+            popnickName: null,
+            Totalprice: null,
+            pophangId:null
+            
+        }
+    },
+    mounted(){
+        this.$post("/tldollar/hangSellInfo/list",{userId:this.$store.state.userInfo.userId}).then(
+            res=>{
+                if(res.code == 0){
+                    this.payArrs = res.data.list
+                }else{
+                    this.$notify(res.msg)
+                }
+            }
+        )
+    },
+    methods:{
+        ...mapActions(['OrderEncryption']),
+        goBuy(){
+            this.$router.push({
+                name: 'BuyGuide',
+            })
+        },
+        showPopup(objs){
+            console.log(objs)
+            this.show = !this.show;
+            this.popPrice = objs.unitPrice;
+            this.popuserId = objs.userId;
+            this.poprmb = objs.rmb;
+            this.popmax = objs.max;
+            this.popmin = objs.min;
+            this.popnickName = objs.nickName
+            this.pophangId =  objs.hangSellInfoId
+        },
+        Order(){
+            if(this.Totalprice && this.Totalprice){
+                this.OrderEncryption({
+                    buyerId:this.$store.state.userInfo.userId,
+                    tldNum: this.popTldNum,
+                    hangSellInfoId: this.pophangId
+                }).then(Res=>{
+                    let formData = new FormData()
+                    formData.append("sign",Res.sign)
+                    formData.append("publicKey",Res.publicKey)
+                    formData.append("plainStr",Res.plainStr)
+                    this.$https.post(this.API+"/tldollar/orderInfo/create",formData).then(
+                        res=>{   
+                            console.log(res.data.data.orderId)                     
+                            if(res.data.code == 0){
+                                this.$router.push({
+                                    name: 'buyPay',
+                                    params: {
+                                        orderId:res.data.data.orderId
+                                    }
+                                })
+                            }else{
+                                this.$notify(res.data.msg);
+                            }
+                        }
+                    ) 
+                })
+            }else{
+                this.$notify("未确定购买数量或总价")
+            }
+        },
+        maxBtn(){
+            this.popTldNum=this.popmax;
+            this.Totalprice = (this.popTldNum * this.popPrice).toFixed(2)
+        },      
+    },
+    watch:{
+        popTldNum(val) {   
+            if(this.popTldNum >= this.popmax){
+                this.popTldNum = this.popmax
+            }else if(this.popTldNum == undefined){
+                if(this.popTldNum <= this.popmin){
+                    this.popTldNum = this.popmin 
+                }
+            }  
+            this.Totalprice = (this.popTldNum * this.popPrice).toFixed(2)          
+        },  
+        show(val){           
+            if(val == false){
+                this.popTldNum = undefined
+            }
+        }      
+    }
+    
+}
+</script>
+
+<style lang='scss' scoped>
+    .buys{
+        height: calc(100% - 50px);
+        background: url('../../img/public_bg.png') no-repeat;
+        background-size: 100% 100%; 
+        overflow: hidden;
+        .buys_tit{
+            display: flex;
+            height: 44px;
+            padding: 0 16px 0 16px;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 17px;
+            color: white;
+            span{
+                display: inline-flex;
+                height: inherit;
+                align-items: center;
+                img{
+                    height: 24px;
+                    margin-left: 13px;
+                }
+            }
+        }
+        .buy_con{
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            .content{
+                height: auto;
+                padding: 7px 16px;
+                box-sizing: border-box;
+                ol.sea{
+                    display: flex;
+                    padding: 6px 0;
+                     box-sizing: border-box;
+                    justify-content: space-between;
+                    background: white;
+                    height: 100%;
+                    border-radius: 4px;
+                    li:first-child{
+                        width: 245px; 
+                        input{
+                            border:none;
+                            padding-left: 10px;
+                            font-size: 12px;
+                            color: #333;
+                            width: 100%;
+                            height: 100%;
+                        }
+                        input::-webkit-input-placeholder {
+                            color: #aab2bd;                            
+                            font-size: 12px;
+                        }
+                    }
+                    li:last-child{
+                        height: 100%;
+                        button{
+                            border:none;
+                            padding: 10px 26px;
+                            height: 100%;
+                            box-sizing: border-box;
+                            background: #fff;
+                            color: #3DA8D7;
+                            font-size: 12px;
+                            height: 100%;
+                            text-align: center;
+                            border-left: 2px solid rgba(0, 0, 0, .1);
+                        }
+                    }
+                }
+                div.Lists{
+                    position: absolute;
+                    top: 58px;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    overflow: hidden;
+                    
+                    padding: 0 16px;
+                    ul{
+                        height:100%;
+                        width: 100%;
+                        overflow: auto;
+                        li{
+                            margin-top: 14px;
+                            height: 150px;
+                            width: 100%;
+                            background-image: url("../../img/listbg.png");
+                            background-size: 100% 100%;
+                            border-radius: 0.25rem;
+                            position: relative;
+                            >i{
+                                position: absolute;
+                                left: 15px;
+                                top: -7px;
+                                display: inline-block;
+                                height: 42px;
+                                width: 42px;
+                                border-radius: 50%;
+                                overflow: hidden;
+                                img{
+                                    height: 100%;
+                                    width: 100%;
+                                }
+                            }
+                            button{
+                                border:none;
+                                height: 32px;
+                                width: 76px;
+                                background:linear-gradient(135deg,rgba(61,69,111,1) 0%,rgba(23,27,52,1) 100%);
+                                position: absolute;
+                                right: 0;
+                                top: 6px;
+                                color: #FFF;
+                                border-radius:16px 0px 0px 16px;
+                                font-size: 12px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                span{
+                                    height: 32px !important;
+                                    line-height: 32px;
+                                }
+                            }
+                            p{
+                                padding:12px 0 12px 71px;
+                                font-size: 17px;
+                                font-weight: 550;
+                                color: #333;
+                                span{
+                                    padding-left: 5px;
+                                    font-size: 12px;
+                                    color: #999999;
+                                    font-weight: normal;
+                                } 
+                            }
+                            div.listCon{
+                                display: flex;
+                                justify-content: space-between;
+                                padding-top: 13px;
+                                text-align: center;
+                                div{
+                                    flex:1;
+                                    strong{
+                                        display: block;
+                                        font-size: 16px;
+                                        color: #333;
+                                        padding: 9px 0;
+                                        font-weight: 550;                                        
+                                        i{
+                                            color: #999;
+                                            font-size: 12px;
+                                            font-weight: normal;
+                                            padding-left: 3px;
+                                        }
+                                    }
+                                    b{
+                                        display: inline-block;
+                                        color: #999;
+                                        font-size: 12px;
+                                        width: 100%;
+                                        i{
+                                            display: inline-block;
+                                            height: 24px;
+                                            width: 24px;
+                                            vertical-align: middle;
+                                            position: relative;
+                                            img{
+                                                position: absolute;
+                                                top: -2px;
+                                                left: -3px;;
+                                                width: 100%;
+                                                height: 100%;;
+                                            }
+                                        }
+                                        span{
+                                            padding-left: 5px;
+                                        }
+                                    }
+                                }
+                            }
+                            .Paying{
+                                height: auto;
+                                padding: 10px 20px 0 20px;
+                                box-sizing: border-box;
+                                font-size: 12px;
+                                position: relative;
+                                
+                                span{
+                                        font-size: 12px;
+                                        color: #333;
+                                        height: 16px;
+                                    }
+                                div{
+                                   float: right; 
+                                   i{
+                                        display: inline-block;
+                                        margin-left: 4px;
+                                        height: 14px;
+                                        width: 14px;
+                                        border-radius: 4px;  
+                                        vertical-align: middle;                                      
+                                        img{
+                                            height: 100%;
+                                            width: 100%
+                                        }
+                                   }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .van-popup--bottom{
+            border-radius:10px 10px 0px 0px ;
+            h3{
+                height: 52px;
+                border-radius:10px 10px 0px 0px ;
+                width: 100%;
+                font-size: 18px;
+                color: #333;
+                padding: 13px 16px;
+                line-height: 20px;
+                background: #F2F2F2FF;
+                span{
+                    float: right;
+                    font-size: 12px;
+                    color: #999999;
+                    i{
+                        margin-left: 4px;
+                        color: #3DA8D7;
+                        align-items: bottom;
+                        font-size: 18px;
+                    }
+                }                
+            }
+            >div{
+                height: 175px;
+                background: #fff;
+                padding: 17px 16px;
+                p.upBtn{
+                    padding: 9px 0 !important;
+                    border-radius: 4px;
+                    display: flex;
+                    justify-content: space-between;
+                    border:1px solid #D4D4D4FF;                    
+                    input{
+                        flex:1;
+                        height: 30px;
+                        border: none;
+                        font-size: 12px;
+                        line-height: 30px;
+                        padding-left: 12px;
+                    }
+                    button{
+                        width: 83px;
+                        height: 30px;
+                        font-size: 14px;
+                        color: #999;
+                        border:none;
+                        line-height: 30px;
+                        text-align: center;
+                        border-left: 2px solid #D4D4D4FF;
+                        background: none;
+                    }
+                }
+                >div{
+                    padding: 24px 0px;
+                    display:flex;   
+                    position: relative;               
+                    div{
+                        display: inline-block;
+                        flex: 1;
+                        p{
+                            font-size: 12px;
+                            line-height: 18px;
+                            color: #999999FF;
+                        }
+                        span{
+                            font-size: 16px;
+                            color: #3DA8D7FF
+                        }
+                        i{
+                            font-size: 15px; 
+                            color:#3DA8D7;
+                            margin-right: 5px;
+                        }
+                    }
+                    div.right{
+                        text-align: right;
+                    }                    
+                }
+                button{
+                        width: 100%;
+                        height:  40px;
+                        background: #3DA8D7FF;
+                        color: #fff;
+                        line-height: 40px;
+                        border:none;
+                        text-align: center;
+                        border-radius: 4px;
+                        font-size: 14px;
+                    }
+            }
+        }
+    }
+</style>

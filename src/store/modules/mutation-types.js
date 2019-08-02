@@ -1,0 +1,12 @@
+// export const LOGIN = 'LOGIN'                        //登录
+// export const SET_USER = 'SET_USER';                 //用户登录信息
+// export const SET_LANG = 'SET_LANG';                 //切换语言
+// export const LOGIN_TYPE = 'LOGIN_TYPE';             //登录状态
+// export const CLEAR_USER_INFO = 'CLEAR_USER_INFO'    //清除用户记录
+export const SAVE_USER = 'SAVE_USER'    //存贮用户注册信息
+export const REDMSG = 'REDMSG'  //红点信息
+export const CLOSE_WEBSOCKET = 'CLOSE_WEBSOCKET' //被挤下线
+export const WEBSOCK_SEND = 'WEBSOCK_SEND' ;//ws发送信息
+export const SHOW_CHATWINDOW = 'SHOW_CHATWINDOW'//显示聊天窗
+export const CLOSE_CHATWINDOW = 'CLOSE_CHATWINDOW'//关闭聊天窗
+export const PRIVATE_CHAT = 'PRIVATE_CHAT'; //接收到私人信息

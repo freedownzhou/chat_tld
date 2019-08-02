@@ -1,0 +1,322 @@
+/*登录页面*/
+.bg_box .center_box .van-checkbox__label{
+  color: #FFFFFF;
+}
+.bg_box .center_box .van-checkbox__icon .van-icon{
+  width: 17px;
+  height: 17px;
+}
+.bg_box .van-icon, .van-icon::before{
+  display: block;
+}
+b  .van-checkbox__icon{
+  height: 15px;
+}
+b  .van-checkbox__icon .van-icon{
+  height: 15px;
+  width: 15px;
+  line-height: 15px;
+}
+.boxBor{
+  box-sizing: border-box
+}
+.prBar .van-progress{
+  height: 14px !important;
+  border-radius: 7px;
+  background: #374390 !important;
+}
+.prBar .van-progress .van-progress__portion{
+  border-radius:7px !important;
+  background: linear-gradient(360deg,rgba(26,65,168,1) 0%,rgba(85,173,214,1) 100%) !important;
+}
+.prBar .van-progress__pivot{
+  background:  none !important;
+  background-color: none !important;
+}
+/*注册，登录模块的公共样式*/
+/*背景图片大盒子*/
+.bg_box{
+  width: 100%;
+  height: 100%;
+  top:0;
+  /*z-index: -1;*/
+  position: absolute;
+  /*width: 100%;*/
+  /*height: auto;*/
+  background: url("../../assets/images/Login/bg.png") 100% no-repeat;
+  background-size:cover;
+}
+.lg_a{
+  line-height:20px;
+  color: #FFFFFF;
+  font-size:14px;
+  font-family:PingFang-SC-Medium;
+  margin-right: 38px;
+}
+/*中间盒子*/
+.center_box{
+  width: 100%;
+  height: auto;
+  position: relative; 
+  margin-top: 55px;
+  width: 300px;
+  margin: 0 auto
+}
+.input_p{
+  height: 48px;
+  overflow: hidden;
+  padding-bottom: 10px;
+}
+/*input*/
+.long_input{
+  width: 252px;
+  height: 100%;
+  font-size: 12px;
+  background:rgba(255,255,255,0.2);
+  border-radius:4px;
+  padding-left: 48px;
+  border: 0;
+  color: #FFFFFF;
+}
+.short_input{
+  width: 150px;
+  height: 48px;
+  color: #FFFFFF;
+  border-bottom-left-radius: 4px;
+  border-top-left-radius: 4px;
+  display: inline-block;
+  font-size: 12px;
+  background:rgba(255,255,255,0.2);
+  border: 0;
+  padding-left: 48px;
+}
+/*input左侧图标*/
+.img_icon{
+  position: relative;
+  top: -40px;
+  left: 10px;
+}
+/*获取短信验证码按钮*/
+.dx_button{
+  width:100px;
+  height:48px;
+  border-bottom-right-radius: 4px;border-top-right-radius: 4px;
+  color: #FFFFFF;
+  border: 0px;
+  transition: all .3s;
+  font-size: 12px;
+  vertical-align: bottom;
+  background:rgba(255,255,255,0.3043);
+}
+/*底部2按钮*/
+.bt_btn{
+  transition: all .3s;
+  display: inline-block;
+  font-size:14px;
+  font-family:PingFangSC-Semibold;
+  font-weight:600;
+  width:141px;
+  height:48px;
+  background:rgba(255,255,255,1);
+  border-radius:4px;
+  color: #171B34;
+  border: 0;
+}
+/*底部1按钮*/
+.bt_btn_one{
+  transition: all .3s;
+  display: inline-block;
+  font-size:14px;
+  font-family:PingFangSC-Semibold;
+  font-weight:600;
+  width:300px;
+  height:48px;
+  background:rgba(255,255,255,1);
+  border-radius:4px;
+  color: #171B34;
+  border: 0;
+}
+/*最后链接*/
+.last_p{
+  width: 100%;
+  height: 20px;
+}
+.last_p a{
+  font-size: 14px;
+  color: #FFFFFF;
+  font-family:PingFang-SC-Medium;
+}
+/*语言选择页面样式*/
+.lg_topbox .van-nav-bar{
+  background: #171B34;
+}
+.lg_topbox .van-icon .van-icon::before{
+  color: #FFFFFF;
+}
+.lg_topbox .van-nav-bar__left, .van-nav-bar__right {
+bottom: 10px;
+}
+.lg_checked .van-radio{
+  display: none;
+}
+.lg_checked .van-cell{
+  height: 44px;
+  box-shadow:0px 0px 0.5px 0.5px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+.lg_topbox .van-nav-bar .van-icon{
+  color: #FFFFFF;
+}
+/*安全设置模块的*/
+.SC_topbox{
+  width: 100%;
+  height: 100%;
+  top:0;
+  /*z-index: -1;*/
+  overflow: hidden;
+  position: absolute;
+}
+.SC_topbox .van-nav-bar .van-icon{
+  color: #FFFFFF;
+}
+.SC_topbox .van-nav-bar{
+  background: #171B34;
+}
+.SC_topbox .van-icon .van-icon::before{
+  color: #FFFFFF;
+}
+.SC_topbox .van-nav-bar__left, .van-nav-bar__right {
+  bottom: 10px;
+  top: 3px;
+}
+.SC_topbox .van-nav-bar__text{
+  color: #FFFFFF;
+}
+.pict .van-cell{
+  height: 56px;
+  box-shadow:0px 0px 0.5px 0.5px rgba(0,0,0,0.15);
+  overflow: hidden;
+  line-height: 36px;
+}
+.SC_topbox .van-cell .van-icon {
+  margin-top: 5px;
+}
+.SC_topbox .van-cell .van-switch{
+  font-size: 15px!important;
+  margin-top: 10px;
+}
+/*安全设置模块头部的样式*/
+.lg_topbox{
+  width: 100%;
+  height: 100%;
+  top:0;
+  /*z-index: -1;*/
+  position: absolute;
+}
+/*中间部分*/
+.security_center{
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 16px;
+}
+/*忘记支付密码页面的样式*/
+/*按钮样式*/
+.FW_one .van-button--primary{
+  background-color:#3DA8D7;
+  border: 0;
+  border-radius:4px;
+}
+.FW_one .van-cell{
+  height: 56px;
+  overflow: hidden;
+  line-height: 36px;
+  padding-left: 0;
+}
+.FW_one .van-cell{
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+.FW_one .van-field__control{
+  font-size: 12px;
+}
+.FW_one .van-field__control{
+padding-left: 20px;
+}
+/*常见问题的选中颜色*/
+.van-tab--active {
+  font-weight: 500;
+  /* color: #fff; */
+}
+
+.logouts_box .van-tab--active{
+  color: #fff;
+}
+.logouts_box .van-tab{
+  color: #fff;
+}
+.SC_topbox .van-tabs__line{
+  /* background-color: #FFF; */
+}
+.SC_topbox .van-tabs__wrap {
+  top: 0;
+  left: 0;
+  right: 0;
+  border-bottom: 1px solid rgba(0,0,0,0.2);
+  z-index: 99;
+  overflow: hidden;
+  position: absolute;
+  height: 2.67rem !important;
+}
+/* .van-tabs__wrap{
+  height: auto !important
+} */
+.van-tab{
+  /* color: #FFF */
+}
+/*密保页面样式*/
+.mibao .van-collapse-item__content{
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.mibao .van-field__control{
+  font-size: 12px!important;
+}
+.security_center .van-button--primary {
+  background-color: #3DA8D7;
+  border: 0;
+  border-radius: 0.25rem;
+}
+/* 交易查询页面样式 */
+.logouts_box [class*=van-hairline]::after{
+border: 0!important;
+}
+
+.van-tabs__track .van-tab__pane:nth-child(3){
+  height: calc(100vh - 88px) !important;
+  /* width: calc(100% - 100px); */
+}
+.wh_content_all{
+  background: none !important;
+}
+.wh_top_changge li{
+  color: #000 !important;
+}
+.wh_jiantou1 , .wh_jiantou2{
+  border-color: #000 !important;
+}
+.wh_content .wh_top_tag , .wh_item_date{
+  color: #000;
+}
+.wh_isToday , .wh_chose_day{
+  color: #FFF;
+  background: linear-gradient(320deg,rgba(26,65,168,1) 0%,rgba(85,173,214,1) 100%) !important;
+}
+/* 注册验证码 */
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+/* 订单弹出内容 */
+.OrderList .van-popup{ 
+  /* overflow: hidden; */
+  width: 100% !important;
+  background: #171B34 !important;
+}

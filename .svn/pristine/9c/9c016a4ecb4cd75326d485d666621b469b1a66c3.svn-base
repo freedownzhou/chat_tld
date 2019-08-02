@@ -1,0 +1,575 @@
+<template>
+    <div :style="{height:Height}" class="index_page">
+        <div class="index" ref="indexH">
+            <div class="index_search">
+                <i @click="sliderBtn"><img :src="userImg" alt=""></i>
+                <b><img src="../../assets/images/Login/logo.png" alt=""></b>
+                <router-link to="/ChatList"> <p class="index_search_img"><img src="../../img/index_jl.png" alt=""></p></router-link>
+            </div>
+            <div class="information">
+                <div class="top">
+                    <div class="left" @click="Per_wallet_cert()">
+                        <p>{{activeAssets}}</p>
+                        <span><i><img src="../../img/mon.png" alt=""></i>可用TLD</span>
+                    </div>
+                    <div class="right" @click="Per_wallet_cert()">
+                        <p>{{lockAssets}}</p>
+                        <span><i><img src="../../assets/images/Index/ice.png" alt=""></i>冻结TLD</span>
+                    </div>
+                </div>
+                <div class="bottom">
+                    <ul>
+                        <li @click="Per_wallet_cert(),RouLink(1)">提币</li>
+                        <li @click="Per_wallet_cert(),RouLink(2)">买入</li>
+                        <li @click="Per_wallet_cert(),RouLink(3)">卖出</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="Buylist">
+                <h3>买入推荐</h3>
+                <ul>
+                    <li v-for="(item,ind) in dataArrs" :key="ind">
+                        <p>
+                            <i>{{item.nickNamePrefix}}</i>
+                            <span>{{item.nickName}}</span>
+                            <b>（{{item.total}} | {{item.ratio}}）</b>
+                        </p>
+                        <div class="content">
+                            <div>
+                                <p>{{item.tldNum}}<i>TLD</i></p>
+                                <span>数量</span>
+                            </div>
+                            <div>
+                                <p>{{item.min}} - {{item.max}}<i>TLD</i></p>
+                                <span>限额</span>
+                            </div>
+                        </div>
+                        <button @click="perStatus(),Per_wallet_cert()">购买</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- <div class="userPrompt" v-show="promptStatus">
+            <h3>操作限制</h3>
+            <p>{{promptValue == 1 ? "您需要在完成钱包创建后，才能进行买入/卖出/提币等操作":"您需要在完善个人信息，才能进行后面等操作。"}}</p>
+            <router-link :to="promptValue == 1 ? '/Createwallet':'/PerInformation'"><button>{{promptValue == 1 ? "一键创建":"去完善"}}</button></router-link>
+        </div> -->
+        <van-popup v-model="slideShow" position="left" class="slide">
+            <div>
+                <i><img :src="userImg" alt=""></i>
+                <span><b>{{this.$store.state.userInfo.realName}}</b>17836479852</span>
+                <strong><van-icon name="arrow" /></strong>
+            </div>
+            <ul>
+                <li v-for="(items,ind) in listArrs" :key="ind">
+                    <router-link :to="items.url">
+                        <i><img :src="items.img" alt=""></i>
+                        <span>{{items.value}}</span>
+                    </router-link>
+                 </li>
+                <li @click="Out">
+                    <a href="#">
+                        <i><img src="../../assets/images/ImpInformation/copy6.png" alt=""></i>
+                        <span>退出登录</span>
+                    </a>
+                </li>
+            </ul>
+        </van-popup>
+        <van-popup v-model="outShow" class="signOut">
+            <p>确认退出登录</p>
+            <ul>
+                <li><button @click="outfn(0)">取消</button></li>
+                <li><button @click="outfn(1)">确定</button></li>
+            </ul>
+        </van-popup>
+    </div>
+</template>
+
+<script>
+import {mapActions} from "vuex"
+export default {
+    data(){
+        return{
+            outShow:false,
+            slideShow:false,
+            promptValue:1,
+            promptStatus:false,
+            userImg:this.$store.state.userInfo.headImag,
+            Height:100+'%',
+            activeAssets:null,
+            lockAssets:null,  
+            dataArrs:null,
+            listArrs:[
+                {img:require('../../assets/images/ImpInformation/1.png'),value:"订单",url:"/Navigation/OrderList"},
+                {img:require('../../assets/images/ImpInformation/copy2.png'),value:"收款设置",url:"/PayInformation"},
+                {img:require('../../assets/images/ImpInformation/copy3.png'),value:"安全设置",url:"/SecurityCenter"},
+                {img:require('../../assets/images/ImpInformation/copy4.png'),value:"客服",url:"/PersonalCenter/CustomerService"},
+                {img:require('../../assets/images/ImpInformation/copy5.png'),value:"关于我们",url:"/PersonalCenter/AboutUs"},              
+            ]      
+        }
+    },
+    created(){        
+        let UserId ; 
+        if(this.$route.params.userId){
+            UserId = this.$route.params.userId 
+        }else{
+            UserId = JSON.parse(localStorage.getItem("tldm")).userId
+        }
+        console.log(UserId)
+        console.log(JSON.parse(localStorage.getItem("tldm")).userId)     
+        this.$post("/tldollar/hangSellInfo/list",{
+            "pageNo": 0,
+            "pageSize": 0,
+            "userId": UserId
+        },{json:"json"}).then(
+            res=>{
+                this.dataArrs = res.data.list
+            }
+        )
+    },
+    mounted(){
+        this.Height = this.$refs.indexH.clientHeight>this.$el.clientHeight?this.$refs.indexH.clientHeight:this.$el.clientHeight;
+        this.Height = this.Height+'px';
+        if(this.$store.state.userInfo.activeAssets == null){
+            this.activeAssets = "-- / --"
+        }else{
+            this.activeAssets = this.$store.state.userInfo.activeAssets
+        }
+        if(this.$store.state.userInfo.lockAssets == null){
+            this.lockAssets = "-- / --"
+        }else{
+            this.lockAssets = this.$store.state.userInfo.lockAssets
+        }
+    },
+    methods:{
+        ...mapActions(["Per_wallet_cert"]),
+        perStatus(){      
+            if(!(this.$store.state.userInfo.wallet)){                
+                this.promptStatus = true;                 
+                this.promptValue  = 2;
+            }else if(!(this.$store.state.userInfo.cert)){
+                this.promptStatus = true;                 
+                this.promptValue  = 1;
+            }
+        },
+        sliderBtn(){
+            this.slideShow = !this.slideShow
+        },
+        RouLink(num){
+            if(this.$store.state.userInfo.nickName  && this.$store.state.userInfo.realName){
+                if(num == 1){
+                    this.$router.psuh("/")
+                }
+                if(num == 2){
+                    this.$router.push({name:'Buy'})
+                }
+                if(num == 3){
+                   this.$router.push({name:'Sell'})
+                }
+            }
+        },
+        Out(){
+           this.outShow = !this.outShow 
+        },
+        outfn(num){
+            if(num == 0){
+                this.outShow = !this.outShow
+            }else{
+                window.localStorage.removeItem('tldm')
+                // this.$store.state.userInfo = null;
+                this.$router.push("/Login")
+            }
+        }
+    }
+}
+</script>
+
+<style lang='scss'>
+    .index_page{
+        background: url('../../img/public_bg.png') no-repeat;
+        background-size: 100% 100%; 
+    }
+    .userPrompt{
+        
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            background: rgba(0,0,0,0.75);
+            transform: translate(-50%,-60%);
+            padding: 13px;
+            box-sizing: border-box;
+            height: 175px;
+            width: 268px;
+            color: #FFF;
+            margin:auto;
+            border-radius: 10px;
+            
+            h3{
+                font-size: 16px;
+                padding: 12px 0 25px 0;
+                text-align: center;
+                letter-spacing:1.5px;
+            }
+            p{
+                font-size: 12px;
+                line-height: 16px;
+            }
+            button{
+                position: absolute;
+                bottom: 15px;
+                left: 50%;
+                transform: translate(-50%);
+                border:none;
+                background: none;
+                font-size: 14px;
+                color:#FDD200;
+                
+            }
+        }
+    .slide{
+        background-image: url("../../assets/images/Index/slidbg.png");
+        background-size:100% 100%;
+        background-repeat: no-repeat;
+        height: 100%;
+        width: 303px;
+        padding: 73px  0  0  48px;
+        box-sizing: border-box;
+        align-items: center;
+        color: #FFF;
+        div{            
+            width: 100%;
+            height: 64px;
+            margin: 0 auto;
+            padding-bottom: 83px;
+            box-sizing: 100%;
+            display: flex;
+            align-items: center;
+            
+            i{
+                display: inline-block;
+                height: 64px;
+                width: 64px;
+                border-radius: 50%;
+                overflow: hidden;
+                vertical-align: middle;
+                img{
+                    height: 100%;
+                    width: 100%;
+                    vertical-align: middle; 
+                }
+            }
+            span{
+                margin-left: 20px;                       
+                box-sizing: border-box;
+                display: inline-block;
+                color: #FFF;
+                font-size: 12px;
+                b{
+                    font-size: 24px;
+                    display: block;
+                    line-height:40px;
+                }                
+            }
+            strong{
+                display: inline-block;
+                height: 14px;
+                margin-left:32px;
+                i{
+                    height: auto;
+                }
+            }
+        }
+        ol{
+            padding: 41px 48px  32px 0;
+            height: auto;
+            width: 100%;
+            display: flex;
+            box-sizing: border-box;
+            justify-content: space-between;
+            text-align: center;
+            li{
+                flex:1;
+                font-weight: 300;
+                p{
+                    font-size: 12px;
+                    strong{
+                        font-size: 25px
+                    }
+                }
+                span{
+                    font-size: 12px;
+                    width: 100%;
+                    text-align: center;
+                }
+            }
+        }
+        ul{
+            height: auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            font-weight: 100;
+            li{
+                padding: 18px 0;
+                height: auto;
+                width: 100%;
+                a{
+                    color: #FFF;
+                    i{
+                        display: inline-block;
+                        height: 24px;
+                        width: 24px;
+                        vertical-align: middle;
+                        img{
+                            height: 100%;
+                            width: 100%;
+                        }
+                    }
+                    span{
+                        margin-left:22px;
+                    }
+                }
+            }
+        }
+    }
+    .index{
+        padding: 12px 16px 80px 16px;
+        .index_search{
+            width: 100%;
+            height: 32px;
+            display: inline-flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2px;
+            box-sizing: border-box;
+            i{
+                display: inline-block;
+                height: 32px;
+                width: 32px;
+                border-radius: 50%;
+                overflow: hidden;
+                border:1px solid #fff;
+                // box-shadow: 2px 7px 7px -7px #FFF ;
+                img{
+                    height: 100%;
+                    width: 100%;
+                }
+            }
+            b{
+                width: 122px;
+                height: 25px;
+                img{
+                    height: 100%;
+                    width: 100%;
+                }
+            }
+            .index_search_box{
+                width: 280px;
+                height: inherit;
+                border-radius: 4px;
+                background: white;
+                overflow: hidden;
+                input{
+                    width: 250px;
+                    border: none;
+                    font-size: 12px;
+                    text-indent: 10px;
+                }
+                ::-webkit-input-placeholder{
+                    font-size: 12px;
+                    color: #999;
+                }
+                button{
+                    width: 25px;
+                    margin-right: 5px;
+                    border: none;
+                    background: url('../../img/index_ss.png') center no-repeat;
+                    background-color: none;
+                    background-size: 24px 24px;
+                }
+            }
+            .index_search_img{
+                img{
+                    width: 24px;
+                    height: 24px;
+                }
+            }
+        }
+        .information{
+            height: 144px;
+            width: 100%;
+            .top{
+                display: flex;
+                justify-content: space-between;
+                padding-bottom: 22px;
+                div{
+                    text-align: center;
+                    width: 100%;
+                    color: #FFF;
+                    p{
+                        padding: 28px 0 10px 0;
+                        font-weight: 500;                        
+                        font-size: 26px;
+                    }
+                    span{
+                        width: 100%;
+                        font-size: 14px;
+                        i{
+                            display: inline-block;
+                            height: 14px;
+                            width: 14px;margin-right: 2px;
+                            vertical-align: middle;
+                            img{
+                                height: 100%;
+                                width: 100%;
+                            }
+                        }
+                    }
+                }
+            }
+            .bottom{               
+                ul{
+                    display: flex;
+                    justify-content: space-between;
+                    width: 100%;
+                    height: auto;                    
+                    li{
+                        display: inline-block;
+                        height: 40px;
+                        width: 99px;
+                        border-radius: 4px;
+                        color: #333;
+                        line-height: 40px;
+                        background: #FFF;
+                        text-align: center;
+                        a{
+                            color: #333;
+                            font-weight: 600;
+                            font-size: 14px;
+                        }
+                    }
+                }
+            }
+        }
+        .Buylist{
+            padding-top: 14px;
+            width: 100%;
+            height: auto;
+            h3{
+                font-size: 18px;
+                color: #FFF;
+                padding:6px 0;
+            }  
+            ul{
+                height: auto;
+                width: 100%;
+                li{
+                    height: 103px;
+                    width: 100%;
+                    border-radius: 4px;
+                    background: #FFF;
+                    position: relative;
+                    padding: 10px 16px 0 16px;
+                    box-sizing: border-box;
+                    margin-bottom: 10px;
+                    >p{
+                        height: auto;
+                        width: 100%;
+                        i{
+                            display:inline-block;
+                            height: 24px;
+                            width: 24px;
+                            border-radius: 50%;
+                            text-align: center;
+                            line-height: 24px;
+                            background: #AEE6FF;
+                            border: solid 1px  #3DA8D7;
+                            box-sizing: border-box;   
+                            vertical-align: middle;  
+                            font-size: 15px;
+                            color: #3DA8D7;                       
+                        }
+                        span{
+                            padding:0 10px;
+                            font-size: 12px;
+                            color: #333;
+                        }
+                        b{
+                            font-size: 12px;
+                            color: #999999;
+                        }
+                    }
+                    .content{
+                        display: flex;
+                        justify-content: space-between;
+                        text-align: center;
+                        padding-top: 13px;
+                        div{
+                            flex: 1;
+                            p{
+                                font-size: 20px;
+                                color: #333;
+                                padding: 5px;
+                                i{
+                                    font-size: 12px;
+                                    padding-left: 3px;
+                                }
+                            } 
+                            span{
+                                color:#999999;
+                                font-size: 12px;
+                            }
+                        }                        
+                    }
+                    button{
+                        border:none;
+                        height: 32px;
+                        width: 76px;
+                        background:linear-gradient(135deg,rgba(61,69,111,1) 0%,rgba(23,27,52,1) 100%);
+                        position: absolute;
+                        right: 0;
+                        top: 6px;
+                        color: #FFF;
+                        border-radius:16px 0px 0px 16px;
+                        font-size: 12px;
+                    }
+                }
+            }
+        }
+    }
+    .signOut{
+            width:70%;
+            padding: 10px 0 20px;
+            background:#FFF;
+            color:#333;
+            border-radius: 4px;
+            p{
+                font-size:16px;
+                text-align:center;
+                padding: 20px 0 40px;;
+                color: #3DA8D7FF;
+            }
+            ul{
+                display:flex;
+                justify-content:space-between;
+                padding: 0 25px;
+                
+                li{
+                    width: 80px;
+                    button{
+                        width:100%;
+                        height:35px;
+                        text-align:center;
+                        border: none;
+                        background: #FFF;
+                        line-height:35px;
+                        color: #3DA8D7FF;
+                        border-radius: 4px;
+                        font-size: 13px;
+                        border: 1px solid #3DA8D7FF
+                    }
+                }
+            }   
+        }
+</style>
+
