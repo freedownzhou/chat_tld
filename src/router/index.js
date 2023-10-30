@@ -7,7 +7,7 @@ Vue.use(Router)
 export default new Router({
   routes: [
     { path: '/', redirect: '/Login'},
-    //注册 登录 语言选择 忘记密码
+    //注册 登录 语言选择,忘记密码
     {path: '/Login',name: 'Login',component: resolve => require(['@/view/RegLogin/Login'], resolve)},
     {path: '/Registered',name: 'Registered',component: resolve => require(['@/view/RegLogin/Registered'], resolve)},
     {path: '/LanguageChange',name: 'LanguageChange',component: resolve => require(['@/view/RegLogin/LanguageChange'], resolve)},
@@ -15,25 +15,25 @@ export default new Router({
 
     //项目六主页面
     {
-      path: '/Navigation', name: '/Navigation', component: resolve => require(['@/view/pageHome/Navigation'], resolve,),meta:{requireAuth:true},   //下导航栏                                   
+      path: '/Navigation', name: '/Navigation', component: resolve => require(['@/view/pageHome/Navigation'], resolve,),meta:{requireAuth:true},   //下导航栏
       redirect: '/Navigation/Index',
       children: [
-        { path: '/Navigation/Index', name: 'Index', component: resolve => require(['@/view/pageHome/Index'], resolve),meta:{requireAuth:true}},   //首页                               
-        { path: '/Navigation/Buy', name: 'Buy', component: resolve => require(['@/view/pageHome/Buy'], resolve),meta:{requireAuth:true}},         //买入                               
+        { path: '/Navigation/Index', name: 'Index', component: resolve => require(['@/view/pageHome/Index'], resolve),meta:{requireAuth:true}},   //首页
+        { path: '/Navigation/Buy', name: 'Buy', component: resolve => require(['@/view/pageHome/Buy'], resolve),meta:{requireAuth:true}},         //买入
         { path: '/Navigation/Sell', name: 'Sell', component: resolve => require(['@/view/pageHome/Sell'], resolve),meta:{requireAuth:true},},     //卖出
-        { path:'/Navigation/Product',name:'Product',component:resolve=>require(['@/view/pageHome/Product'],resolve),meta:{requireAuth:true}},     //产品                                
+        { path:'/Navigation/Product',name:'Product',component:resolve=>require(['@/view/pageHome/Product'],resolve),meta:{requireAuth:true}},     //产品
         { path:'/Navigation/OrderList',name:'OrderList',component:resolve=>require(['@/view/pageHome/OrderList'],resolve),meta:{requireAuth:true}}//订单
       ]
     },
-    
+
     //信息完善              ImpInformation
     {path: '/PerInformation', name: 'PerInformation', component: resolve => require(['@/view/ImpInformation/PerInformation'], resolve),meta:{requireAuth:true}},  //个人
     {path: '/Createwallet', name: 'Createwallet', component: resolve => require(['@/view/ImpInformation/Createwallet'], resolve),meta:{requireAuth:true}},        //钱包
     {path: '/PayInformation', name: 'PayInformation', component: resolve => require(['@/view/ImpInformation/PayInformation'], resolve),meta:{requireAuth:true}},  //收款
-   
+
     //侧边 个人-商户中心     sideCenter
-    {path: '/SecurityCenter',name: 'SecurityCenter',component: resolve => require(['@/view/sideCenter/SecurityCenter'], resolve),meta: {requireAuth:true}},       //安全中心    
-    
+    {path: '/SecurityCenter',name: 'SecurityCenter',component: resolve => require(['@/view/sideCenter/SecurityCenter'], resolve),meta: {requireAuth:true}},       //安全中心
+
 
     //安全中心              SecuritySettings
     // {path: '/SecuritySettings/SecurityCenter',name: 'SecurityCenter',component: resolve => require(['@/view/SecuritySettings/Settings/SecurityCenter'], resolve),meta: {title: '安全中心',requireAuth:true}},
@@ -50,7 +50,7 @@ export default new Router({
     //聊天   Chatpage
     // {path: '/chatList',name: 'chatList',component: resolve => require(['@/view/Chatpage/chatList'], resolve),meta: {requireAuth:true}},  //聊天列表
     {path:'/ChatRoom',name:'ChatRoom',component:resolve=>require(['@/view/ChatRoom'],resolve),meta:{requireAuth:true}},                                                    //联系卖家
-    {path:'/ChatList',name:'ChatList',component:resolve=>require(['@/view/ChatList'],resolve),meta:{requireAuth:true}},         
+    {path:'/ChatList',name:'ChatList',component:resolve=>require(['@/view/ChatList'],resolve),meta:{requireAuth:true}},
 
     //支付   Paypage
     {path: '/buyPay',name: 'buyPay',component: resolve => require(['@/view/payPage/buypay'], resolve),meta: {requireAuth:true}},  //聊天列表
@@ -70,7 +70,7 @@ export default new Router({
 
 
 
-    
+
 
     {path: '/TransactionRecord', name: 'TransactionRecord', component: resolve => require(['@/view/TransactionRecord'], resolve),meta:{requireAuth:true}},                //交易记录
     {path:'/BuyGuide',name:'BuyGuide',component:resolve=>require(['@/view/BuyGuide'],resolve),meta:{requireAuth:true}},                                                    //买入推荐
@@ -85,9 +85,9 @@ export default new Router({
     {path:'/CardBag',name:'CardBag',component:resolve=>require(['@/view/CardBag'],resolve),meta:{requireAuth:true}},                                                       //我的银行卡
     {path:'/AddCard',name:'AddCard',component:resolve=>require(['@/view/AddCard'],resolve),meta:{requireAuth:true}},                                                       //添加银行卡
     {path:'/TransactionInquiry',name:'TransactionInquiry',component:resolve=>require(['@/view/TransactionInquirys/TransactionInquiry'],resolve),meta:{requireAuth:true}},  //交易查询
-    // {path:'/TransactionInquirys/OrderList',name:'OrderList',component:resolve=>require(['@/view/TransactionInquirys/OrderList'],resolve)},         //查询结果         
-    {path:'/ContactSeller',name:'ContactSeller',component:resolve=>require(['@/view/ContactSeller'],resolve),meta:{requireAuth:true}},                                     //联系卖家 
-    
+    // {path:'/TransactionInquirys/OrderList',name:'OrderList',component:resolve=>require(['@/view/TransactionInquirys/OrderList'],resolve)},         //查询结果
+    {path:'/ContactSeller',name:'ContactSeller',component:resolve=>require(['@/view/ContactSeller'],resolve),meta:{requireAuth:true}},                                     //联系卖家
+
     //商户
     { path:'/DockingSet',name:'DockingSet',component:resolve=>require(['@/view/DockingSet'],resolve),meta:{requireAuth:true}},                                              //对接设置
     { path:'/ReSetKey',name:'ReSetKey',component:resolve=>require(['@/view/ReSetKey'],resolve),meta:{requireAuth:true}},                                                    //重置密钥
@@ -97,20 +97,20 @@ export default new Router({
     { path: '/view/UserSettings/UserSetting',name: 'UserSetting',component: resolve => require(['@/view/UserSettings/UserSetting'], resolve),meta:{requireAuth:true}},                        //用户设置
     { path: '/view/UserSettings/LogoutAccount', name: 'LogoutAccount', component: resolve => require(['@/view/UserSettings/LogoutAccount'], resolve),meta:{requireAuth:true}},                        //注销账户
     { path: '/view/UserSettings/Company', name: 'Company', component: resolve => require(['@/view/UserSettings/Company'], resolve),meta:{requireAuth:true}},                                  //我的门店
-    { path: '/view/UserSettings/Company/CompanyDetail', name: 'CompanyDetail', component: resolve => require(['@/view/UserSettings/CompanyDetail'], resolve),meta:{requireAuth:true}},        //门店详情   
+    { path: '/view/UserSettings/Company/CompanyDetail', name: 'CompanyDetail', component: resolve => require(['@/view/UserSettings/CompanyDetail'], resolve),meta:{requireAuth:true}},        //门店详情
     { path: '/Product/ProductDetail', name: 'ProductDetail', component: resolve => require(['@/view/ProductDetail'], resolve),meta:{requireAuth:true}},                                       //产品详情
     { path: '/Statement', name: 'Statement', component: resolve => require(['@/view/Statement'], resolve),meta:{requireAuth:true}},                                                           //对账单
     // Statement
 
-    
-    
-    
-    
-   
+
+
+
+
+
 
     {path: '/login/BusinessLicense',name: 'BusinessLicense',component: resolve => require(['@/view/login/registered/BusinessLicense'], resolve),meta: {title: '上传执照'}},
-    
-    
+
+
     //个人中心
     {path: '/PersonalCenter/SafetySettingReception',name: 'SafetySettingReception',component: resolve => require(['@/view/PersonalCenter/SafetySettingReception'], resolve),meta: {title: '安全中心4个简介',requireAuth:true}},
     {path: '/PersonalCenter/CustomerService',name: 'CustomerService',component: resolve => require(['@/view/PersonalCenter/CustomerService'], resolve),meta: {title: '客服',requireAuth:true}},
