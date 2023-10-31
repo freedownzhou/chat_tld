@@ -7,7 +7,7 @@ Vue.use(Router)
 export default new Router({
   routes: [
     { path: '/', redirect: '/Login'},
-    //注册 登录 语言选择,忘记密码
+    //注册 登录 语言选择,忘记密码1234
     {path: '/Login',name: 'Login',component: resolve => require(['@/view/RegLogin/Login'], resolve)},
     {path: '/Registered',name: 'Registered',component: resolve => require(['@/view/RegLogin/Registered'], resolve)},
     {path: '/LanguageChange',name: 'LanguageChange',component: resolve => require(['@/view/RegLogin/LanguageChange'], resolve)},
