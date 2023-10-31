@@ -17,7 +17,7 @@ import RegExp from './assets/js/public'
 import echarts from 'echarts'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
-import qs from 'qs'  //序列化post类型的数据
+import qs from 'qs'  //序列化post类型的数据.
 import base64 from 'js-base64';
 //axios 封装
 import "./plugin/httpAxios"
@@ -36,8 +36,8 @@ Vue.prototype.api = "http://192.168.2.124:8084";
 // Vue.prototype.GetTldm = JSON.parse(localStorage.getItem("tldm"));
 Vue.prototype.$Base64  =  require('js-base64').Base64;
 
-if(JSON.parse(localStorage.getItem("tldm"))){ 
-  Store.state.userInfo = JSON.parse(localStorage.getItem("tldm"))      
+if(JSON.parse(localStorage.getItem("tldm"))){
+  Store.state.userInfo = JSON.parse(localStorage.getItem("tldm"))
 }else{
   router.push({name:'/'})
 }
@@ -55,7 +55,7 @@ router.beforeEach((to, from, next) => {
   } else {
     next();
   }
-  
+
 //   if (to.fullPath === "/") {
 //     if (Store.state.userInfo.token) {
 //       next({
